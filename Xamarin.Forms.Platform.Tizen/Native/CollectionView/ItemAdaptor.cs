@@ -13,7 +13,12 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public CollectionView CollectionView { get; set; }
 
-		public ItemAdaptor(IEnumerable items)
+		protected ItemAdaptor(IEnumerable items)
+		{
+			SetItemsSource(items);
+		}
+
+		protected void SetItemsSource(IEnumerable items)
 		{
 			switch (items)
 			{
@@ -68,60 +73,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		public abstract void SetBinding(EvasObject view, int index);
 
 		public abstract ESize MeasureItem(int widthConstraint, int heightConstraint);
-
-	}
-
-	public class ItemTemplateAdaptor : ItemAdaptor
-	{
-		Dictionary<EvasObject, View> _nativeFormsTable = new Dictionary<EvasObject, View>();
-		DataTemplate _template;
-		ItemsView _itemsView;
-
-		public ItemTemplateAdaptor(ItemsView itemsView) : base(itemsView.ItemsSource)
-		{
-			_template = itemsView.ItemTemplate;
-			_itemsView = itemsView;
-		}
-
-		public override EvasObject CreateNativeView(EvasObject parent)
-		{
-			System.Console.WriteLine($"CreateNativeView");
-			var view = _template.CreateContent() as View;
-			var renderer = Platform.GetOrCreateRenderer(view);
-			var native = Platform.GetOrCreateRenderer(view).NativeView;
-			view.Parent = _itemsView;
-			(renderer as LayoutRenderer)?.RegisterOnLayoutUpdated();
-
-			_nativeFormsTable[native] = view;
-			return native;
-		}
-
-		public override void RemoveNativeView(EvasObject native)
-		{
-			System.Console.WriteLine($"RemoveNativeView");
-			if (_nativeFormsTable.TryGetValue(native, out View view))
-			{
-				Platform.GetRenderer(view)?.Dispose();
-				_nativeFormsTable.Remove(native);
-			}
-		}
-
-		public override void SetBinding(EvasObject native, int index)
-		{
-			if (_nativeFormsTable.TryGetValue(native, out View view))
-			{
-				var data = this[index];
-				System.Console.WriteLine($"SetBinding context= {data}");
-				view.BindingContext = this[index];
-			}
-		}
-
-		public override ESize MeasureItem(int widthConstraint, int heightConstraint)
-		{
-			var view = _template.CreateContent() as View;
-			view.Parent = _itemsView;
-			return view.Measure(widthConstraint, heightConstraint).Request.ToPixel();
-		}
 
 	}
 }

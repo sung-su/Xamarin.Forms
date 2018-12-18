@@ -11,8 +11,12 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		void SizeAllocated(ESize size);
 		ESize GetScrollCanvasSize();
 
-		void LayoutItems(Rect bound);
+		void LayoutItems(Rect bound, bool force = false);
 		Rect GetItemBound(int index);
+
+		void ItemInserted(int index);
+		void ItemRemoved(int index);
+		void ItemUpdated(int index);
 
 		void Reset();
 	}

@@ -4,6 +4,7 @@ using EBox = ElmSharp.Box;
 using EScroller = ElmSharp.Scroller;
 using ESize = ElmSharp.Size;
 using EPoint = ElmSharp.Point;
+using System.Collections.Specialized;
 
 namespace Xamarin.Forms.Platform.Tizen.Native
 {
@@ -28,6 +29,59 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_innerLayout.SetLayoutCallback(OnInnerLayout);
 			_innerLayout.Show();
 			Scroller.SetContent(_innerLayout);
+
+			//Scroller.HorizontalPageScrollLimit = 1;
+			//Scroller.VerticalPageScrollLimit = 1;
+
+			//(new SmartEvent(Scroller, Scroller.RealHandle, "scroll,anim,stop")).On += OnScrollAnimationCompleted;
+
+		}
+
+		bool _onSnaping;
+
+		int _lastPage = 0;
+		void OnScrollAnimationCompleted(object sender, EventArgs e)
+		{
+			if (LayoutManager == null)
+				return;
+			if (_onSnaping)
+				return;
+
+			_onSnaping = true;
+
+			System.Console.WriteLine($"anim,stop H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
+
+			if (LayoutManager.IsHorizontal)
+			{
+				if (Scroller.HorizontalPageIndex % 2 == 0)
+				{
+					int diff = 1;
+					if (_lastPage > Scroller.HorizontalPageIndex)
+					{
+						diff = -1;
+					}
+						Scroller.ScrollTo(Scroller.HorizontalPageIndex + diff, Scroller.VerticalPageIndex, false);
+					System.Console.WriteLine($"anim,stop RequestEnd H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
+				}
+				_lastPage = Scroller.HorizontalPageIndex;
+			}
+			else
+			{
+				if (Scroller.VerticalPageIndex % 2 == 0)
+				{
+					int diff = 1;
+					if (_lastPage > Scroller.VerticalPageIndex)
+					{
+						diff = -1;
+					}
+
+					Scroller.ScrollTo(Scroller.HorizontalPageIndex, Scroller.VerticalPageIndex + diff, false);
+					System.Console.WriteLine($"anim,stop RequestEnd H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
+				}
+				_lastPage = Scroller.VerticalPageIndex;
+			}
+
+			_onSnaping = false;
 		}
 
 		protected virtual EScroller CreateScroller(EvasObject parent)
@@ -92,6 +146,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			if (Adaptor != null)
 			{
 				_pool.Clear(Adaptor);
+				(Adaptor as INotifyCollectionChanged).CollectionChanged -= OnCollectionChanged;
 			}
 		}
 		void OnAdaptorChanged()
@@ -99,15 +154,57 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			if (_adaptor == null)
 				return;
 
+			_itemSize = new ESize(-1, -1);
+
+			(Adaptor as INotifyCollectionChanged).CollectionChanged += OnCollectionChanged;
+
 			RequestLayoutItems();
+
+			if (LayoutManager != null)
+			{
+				var itemSize = (this as ICollectionViewController).GetItemSize();
+			}
 		}
 
+		void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			if (e.Action == NotifyCollectionChangedAction.Add)
+			{
+				int idx = e.NewStartingIndex;
+				foreach (var item in e.NewItems)
+				{
+					LayoutManager.ItemInserted(idx++);
+				}
+			}
+			else if (e.Action == NotifyCollectionChangedAction.Remove)
+			{
+				int idx = e.OldStartingIndex;
+				foreach (var item in e.OldItems)
+				{
+					LayoutManager.ItemRemoved(idx);
+				}
+			}
+			else if (e.Action == NotifyCollectionChangedAction.Move)
+			{
+				LayoutManager.ItemRemoved(e.OldStartingIndex);
+				LayoutManager.ItemInserted(e.NewStartingIndex);
+			}
+			else if (e.Action == NotifyCollectionChangedAction.Replace)
+			{
+				LayoutManager.ItemUpdated(e.NewStartingIndex);
+			}
+			else if (e.Action == NotifyCollectionChangedAction.Reset)
+			{
+				LayoutManager.Reset();
+			}
+			RequestLayoutItems();
+		}
 
 		Rect _lastGeometry;
 
 		void OnLayout()
 		{
-			System.Console.WriteLine("CollectionView : OnLayout");
+			System.Console.WriteLine($"CollectionView : OnLayout {Geometry}");
 			if (_lastGeometry == Geometry)
 			{
 				return;
@@ -117,6 +214,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			Scroller.Geometry = Geometry;
 			Scroller.ScrollBlock = ScrollBlock.None;
 			AllocatedSize = Geometry.Size;
+			_itemSize = new ESize(-1, -1);
 
 			if (_adaptor != null && _layoutManager != null)
 			{
@@ -136,7 +234,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 					_requestLayoutItems = false;
 					if (_adaptor != null && _layoutManager != null)
 					{
-						_layoutManager?.LayoutItems(ViewPort);
+						OnInnerLayout();
+						_layoutManager?.LayoutItems(ViewPort, true);
 					}
 				});
 			}
@@ -153,6 +252,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_innerLayout.MinimumHeight = size.Height;
 
 			// elm-scroller updates the CurrentRegion after render
+			/*
 			Device.BeginInvokeOnMainThread(() =>
 			{
 				if (Scroller != null)
@@ -160,11 +260,30 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 					OnScrolled(Scroller, EventArgs.Empty);
 				}
 			});
+			*/
 		}
 
 		void OnScrolled(object sender, EventArgs e)
 		{
 			_layoutManager.LayoutItems(Scroller.CurrentRegion);
+		}
+
+		ESize _itemSize = new ESize(-1, -1);
+		ESize ICollectionViewController.GetItemSize()
+		{
+			if (_itemSize.Width > 0 && _itemSize.Height > 0)
+			{
+				return _itemSize;
+			}
+			_itemSize = Adaptor.MeasureItem(AllocatedSize.Width, AllocatedSize.Height);
+			if (_itemSize.Width <= 0)
+				_itemSize.Width = 50;
+			if (_itemSize.Height <= 0)
+				_itemSize.Height = 50;
+
+			//Scroller.SetPageSize(_itemSize.Width, _itemSize.Height);
+
+			return _itemSize;
 		}
 
 		EvasObject ICollectionViewController.RealizeView(int index)
@@ -182,27 +301,16 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			else
 			{
 				view = Adaptor.CreateNativeView(this);
+				_innerLayout.PackEnd(view);
 			}
 
 			Adaptor.SetBinding(view, index);
-			_innerLayout.PackEnd(view);
 			return view;
-		}
-
-		ESize _itemSize = new ESize(-1, -1);
-		ESize ICollectionViewController.GetItemSize()
-		{
-			if (_itemSize.Width > 0 && _itemSize.Height > 0)
-			{
-				return _itemSize;
-			}
-			return _itemSize = Adaptor.MeasureItem(AllocatedSize.Width, AllocatedSize.Height);
 		}
 
 		void ICollectionViewController.UnrealizeView(EvasObject view)
 		{
 			System.Console.WriteLine($"UnrealizeView {view}");
-			_innerLayout.UnPack(view);
 			view.Hide();
 			_pool.AddRecyclerView(view);
 		}
