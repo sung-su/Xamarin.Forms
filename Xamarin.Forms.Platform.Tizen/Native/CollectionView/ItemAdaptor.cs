@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using ElmSharp;
@@ -68,11 +68,18 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
+		public int GetItemIndex(object item)
+		{
+			return _itemsSource.IndexOf(item);
+		}
+
+
 		public abstract EvasObject CreateNativeView(EvasObject parent);
+
 		public abstract void RemoveNativeView(EvasObject native);
+
 		public abstract void SetBinding(EvasObject view, int index);
 
 		public abstract ESize MeasureItem(int widthConstraint, int heightConstraint);
-
 	}
 }

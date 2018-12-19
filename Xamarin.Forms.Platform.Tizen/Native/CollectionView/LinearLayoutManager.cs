@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ElmSharp;
@@ -216,6 +216,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				CollectionView.UnrealizeView(realizedItem.View);
 			}
 			_realizedItem.Clear();
+			_scrollCanvasSize = new ESize(0, 0);
 		}
 
 

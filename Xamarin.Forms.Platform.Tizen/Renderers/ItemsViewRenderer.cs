@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.Linq;
+
 using Xamarin.Forms.Platform.Tizen.Native;
-using ESize = ElmSharp.Size;
 
 namespace Xamarin.Forms.Platform.Tizen
 {
 	public class ItemsViewRenderer : ViewRenderer<ItemsView, Native.CollectionView>
 	{
-		static DataTemplate s_defaultEmptyTemplate = new DataTemplate(typeof(EmptyView));
 		INotifyCollectionChanged _observableSource;
 
 		public ItemsViewRenderer()
 		{
-			System.Console.WriteLine("ItemsViewRenderer created");
 			RegisterPropertyHandler(ItemsView.ItemsSourceProperty, UpdateItemsSource);
 			RegisterPropertyHandler(ItemsView.ItemTemplateProperty, UpdateAdaptor);
 			RegisterPropertyHandler(ItemsView.ItemsLayoutProperty, UpdateItemsLayout);
@@ -22,18 +18,47 @@ namespace Xamarin.Forms.Platform.Tizen
 
 		protected override void OnElementChanged(ElementChangedEventArgs<ItemsView> e)
 		{
-			System.Console.WriteLine("OnElementChanged");
 			if (Control == null)
 			{
 				SetNativeControl(new Native.CollectionView(Forms.NativeParent));
 			}
+
+			if (e.NewElement != null)
+			{
+				e.NewElement.ScrollToRequested += OnScrollToRequest;
+			}
+
 			base.OnElementChanged(e);
 			UpdateAdaptor(false);
 		}
 
-		protected override ESize Measure(int availableWidth, int availableHeight)
+		protected override void Dispose(bool disposing)
 		{
-			return new ESize(300, 300);
+			if (disposing)
+			{
+				if (Element != null)
+				{
+					Element.ScrollToRequested -= OnScrollToRequest;
+					Element.ItemsLayout.PropertyChanged -= OnLayoutPropertyChanged;
+				}
+				if (_observableSource != null)
+				{
+					_observableSource.CollectionChanged -= OnCollectionChanged;
+				}
+			}
+			base.Dispose(disposing);
+		}
+
+		void OnScrollToRequest(object sender, ScrollToRequestEventArgs e)
+		{
+			if (e.Mode == ScrollToMode.Position)
+			{
+				Control.ScrollTo(e.Index, e.ScrollToPosition, e.IsAnimated);
+			}
+			else
+			{
+				Control.ScrollTo(e.Item, e.ScrollToPosition, e.IsAnimated);
+			}
 		}
 
 		void UpdateItemsSource(bool initialize)
@@ -47,7 +72,6 @@ namespace Xamarin.Forms.Platform.Tizen
 				_observableSource = collectionChanged;
 				_observableSource.CollectionChanged += OnCollectionChanged;
 			}
-
 			UpdateAdaptor(initialize);
 		}
 
@@ -55,11 +79,7 @@ namespace Xamarin.Forms.Platform.Tizen
 		{
 			if (Element.ItemsSource == null || !Element.ItemsSource.Cast<object>().Any())
 			{
-				System.Console.WriteLine($"Empty adaptor setup");
-				DataTemplate template = Element.EmptyViewTemplate ?? s_defaultEmptyTemplate;
-				var empty = new List<object>();
-				empty.Add(Element.EmptyView ?? new object());
-				Control.Adaptor = new EmptyItemAdaptor(Element, empty, template);
+				Control.Adaptor = EmptyItemAdaptor.Create(Element);
 			}
 			else
 			{
@@ -74,71 +94,49 @@ namespace Xamarin.Forms.Platform.Tizen
 		{
 			if (!initialize)
 			{
-				System.Console.WriteLine("Adaptor Update!!!");
-				Control.Adaptor = new ItemTemplateAdaptor(Element);
-				System.Console.WriteLine("Adaptor Update!!! - end");
+				if (Element.ItemsSource == null || !Element.ItemsSource.Cast<object>().Any())
+				{
+					Control.Adaptor = EmptyItemAdaptor.Create(Element);
+				}
+				else
+				{
+					Control.Adaptor = new ItemTemplateAdaptor(Element);
+				}
 			}
 		}
 
 		void UpdateItemsLayout()
 		{
-			Console.WriteLine($"UpdateItemslayout - start");
-			System.Console.WriteLine($"Element.ItemsLayout {Element.ItemsLayout}");
-			if (Element.ItemsLayout == null)
+			if (Element.ItemsLayout != null)
 			{
-				System.Console.WriteLine("Element.ItemsLayout == null is NULL!!!!");
-			}else
-			{
-				System.Console.WriteLine($"Control == null ? {Control == null}");
-
-				var layoutmananger = Element.ItemsLayout.ToLayoutManager();
-
-				System.Console.WriteLine($"Created layoutmanager !! ? {layoutmananger}");
-
-				Control.LayoutManager = layoutmananger;
+				Control.LayoutManager = Element.ItemsLayout.ToLayoutManager();
+				Control.SnapPointsType = (Element.ItemsLayout as ItemsLayout)?.SnapPointsType ?? SnapPointsType.None;
+				Element.ItemsLayout.PropertyChanged += OnLayoutPropertyChanged;
 			}
-
-			Console.WriteLine($"UpdateItemslayout - end");
 		}
 
+		void OnLayoutPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(ItemsLayout.SnapPointsType))
+			{
+				Control.SnapPointsType = (Element.ItemsLayout as ItemsLayout)?.SnapPointsType ?? SnapPointsType.None;
+			}
+		}
 	}
 
 	static class ItemsLayoutExtension
 	{
 		public static ICollectionViewLayoutManager ToLayoutManager(this IItemsLayout layout)
 		{
-			System.Console.WriteLine($"ToLayoutManager {layout} null? : {layout==null}");
 			switch (layout)
 			{
 				case ListItemsLayout listItemsLayout:
-					System.Console.WriteLine($"Is ListItemsLayout listItemsLayout.Orientation = {listItemsLayout.Orientation}");
-					var tmp = new LinearLayoutManager(listItemsLayout.Orientation == ItemsLayoutOrientation.Horizontal);
-					System.Console.WriteLine("LinearLayoutManager is created");
-					return tmp;
+					return new LinearLayoutManager(listItemsLayout.Orientation == ItemsLayoutOrientation.Horizontal);
 				default:
 					break;
 			}
 
-			System.Console.WriteLine($"ToLayoutManager 2");
 			return new LinearLayoutManager(false);
-		}
-	}
-	class EmptyView : StackLayout
-	{
-		public EmptyView()
-		{
-			HorizontalOptions = LayoutOptions.FillAndExpand;
-			VerticalOptions = LayoutOptions.FillAndExpand;
-			Children.Add(
-				new Label
-				{
-					Text = "No items found",
-					VerticalOptions = LayoutOptions.CenterAndExpand,
-					HorizontalOptions = LayoutOptions.CenterAndExpand,
-					HorizontalTextAlignment = TextAlignment.Center,
-					VerticalTextAlignment = TextAlignment.Center,
-				}
-			);
 		}
 	}
 }

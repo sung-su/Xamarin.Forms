@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,8 +54,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		{
 			if (_nativeFormsTable.TryGetValue(native, out View view))
 			{
-				var data = this[index];
-				System.Console.WriteLine($"SetBinding context = {data}");
+				System.Console.WriteLine($"SetBinding context = {this[index]}");
 				view.BindingContext = this[index];
 			}
 		}

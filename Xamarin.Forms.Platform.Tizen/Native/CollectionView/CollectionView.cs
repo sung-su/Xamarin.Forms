@@ -1,24 +1,26 @@
-﻿using System;
+using System;
+using System.Collections.Specialized;
 using ElmSharp;
 using EBox = ElmSharp.Box;
 using EScroller = ElmSharp.Scroller;
 using ESize = ElmSharp.Size;
 using EPoint = ElmSharp.Point;
-using System.Collections.Specialized;
 
 namespace Xamarin.Forms.Platform.Tizen.Native
 {
 	public class CollectionView : EBox, ICollectionViewController
 	{
+		RecyclerPool _pool = new RecyclerPool();
 		ICollectionViewLayoutManager _layoutManager;
 		ItemAdaptor _adaptor;
 		EBox _innerLayout;
+
 		bool _requestLayoutItems = false;
-		RecyclerPool _pool = new RecyclerPool();
+		SnapPointsType _snapPoints;
+		ESize _itemSize = new ESize(-1, -1);
 
 		public CollectionView(EvasObject parent) : base(parent)
 		{
-			System.Console.WriteLine("CollectionView created");
 			SetLayoutCallback(OnLayout);
 			Scroller = CreateScroller(parent);
 			Scroller.Show();
@@ -29,67 +31,20 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_innerLayout.SetLayoutCallback(OnInnerLayout);
 			_innerLayout.Show();
 			Scroller.SetContent(_innerLayout);
-
-			//Scroller.HorizontalPageScrollLimit = 1;
-			//Scroller.VerticalPageScrollLimit = 1;
-
-			//(new SmartEvent(Scroller, Scroller.RealHandle, "scroll,anim,stop")).On += OnScrollAnimationCompleted;
-
 		}
 
-		bool _onSnaping;
-
-		int _lastPage = 0;
-		void OnScrollAnimationCompleted(object sender, EventArgs e)
+		public SnapPointsType SnapPointsType
 		{
-			if (LayoutManager == null)
-				return;
-			if (_onSnaping)
-				return;
+			get => _snapPoints;
 
-			_onSnaping = true;
-
-			System.Console.WriteLine($"anim,stop H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
-
-			if (LayoutManager.IsHorizontal)
+			set
 			{
-				if (Scroller.HorizontalPageIndex % 2 == 0)
-				{
-					int diff = 1;
-					if (_lastPage > Scroller.HorizontalPageIndex)
-					{
-						diff = -1;
-					}
-						Scroller.ScrollTo(Scroller.HorizontalPageIndex + diff, Scroller.VerticalPageIndex, false);
-					System.Console.WriteLine($"anim,stop RequestEnd H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
-				}
-				_lastPage = Scroller.HorizontalPageIndex;
+				_snapPoints = value;
+				UpdateSnapPointsType(_snapPoints);
 			}
-			else
-			{
-				if (Scroller.VerticalPageIndex % 2 == 0)
-				{
-					int diff = 1;
-					if (_lastPage > Scroller.VerticalPageIndex)
-					{
-						diff = -1;
-					}
-
-					Scroller.ScrollTo(Scroller.HorizontalPageIndex, Scroller.VerticalPageIndex + diff, false);
-					System.Console.WriteLine($"anim,stop RequestEnd H : {Scroller.HorizontalPageIndex} V: {Scroller.VerticalPageIndex}");
-				}
-				_lastPage = Scroller.VerticalPageIndex;
-			}
-
-			_onSnaping = false;
 		}
 
-		protected virtual EScroller CreateScroller(EvasObject parent)
-		{
-			return new EScroller(parent);
-		}
-
-		public EScroller Scroller { get; }
+		protected EScroller Scroller { get; }
 
 		public ICollectionViewLayoutManager LayoutManager
 		{
@@ -114,10 +69,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-		ESize AllocatedSize { get; set; }
-
-		Rect ViewPort => Scroller.CurrentRegion;
-
 		int ICollectionViewController.Count => Adaptor?.Count ?? 0;
 
 		EPoint ICollectionViewController.ParentPosition => new EPoint
@@ -126,10 +77,114 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			Y = Scroller.Geometry.Y - Scroller.CurrentRegion.Y
 		};
 
+		ESize AllocatedSize { get; set; }
+
+		Rect ViewPort => Scroller.CurrentRegion;
+
+		public void ScrollTo(int index, ScrollToPosition position = ScrollToPosition.MakeVisible, bool animate = true)
+		{
+			var bound = LayoutManager.GetItemBound(index);
+
+			if (LayoutManager.IsHorizontal)
+			{
+				if (bound.Width < AllocatedSize.Width)
+				{
+					switch (position)
+					{
+						case ScrollToPosition.Center:
+							bound.X -= (AllocatedSize.Width - bound.Width) / 2;
+							break;
+						case ScrollToPosition.End:
+							bound.X -= (AllocatedSize.Width - bound.Width);
+							break;
+					}
+					bound.Width = AllocatedSize.Width;
+				}
+			}
+			else
+			{
+				if (bound.Height < AllocatedSize.Height)
+				{
+					switch (position)
+					{
+						case ScrollToPosition.Center:
+							bound.Y -= (AllocatedSize.Height - bound.Height) / 2;
+							break;
+						case ScrollToPosition.End:
+							bound.Y -= (AllocatedSize.Height - bound.Height);
+							break;
+					}
+					bound.Height = AllocatedSize.Height;
+				}
+			}
+			Scroller.ScrollTo(bound, animate);
+		}
+
+		public void ScrollTo(object item, ScrollToPosition position = ScrollToPosition.MakeVisible, bool animate = true)
+		{
+			ScrollTo(Adaptor.GetItemIndex(item), position, animate);
+		}
+
+		ESize ICollectionViewController.GetItemSize()
+		{
+			if (Adaptor == null)
+			{
+				return new ESize(0, 0);
+			}
+			if (_itemSize.Width > 0 && _itemSize.Height > 0)
+			{
+				return _itemSize;
+			}
+
+			_itemSize = Adaptor.MeasureItem(AllocatedSize.Width, AllocatedSize.Height);
+			_itemSize.Width = Math.Max(_itemSize.Width, 10);
+			_itemSize.Height = Math.Max(_itemSize.Height, 10);
+
+			if (_snapPoints != SnapPointsType.None)
+			{
+				Scroller.SetPageSize(_itemSize.Width, _itemSize.Height);
+			}
+			return _itemSize;
+		}
+
+		EvasObject ICollectionViewController.RealizeView(int index)
+		{
+			System.Console.WriteLine($"RealizeView {index}");
+			if (Adaptor == null)
+				return null;
+
+			var view = _pool.GetRecyclerView();
+			if (view != null)
+			{
+				view.Show();
+			}
+			else
+			{
+				view = Adaptor.CreateNativeView(this);
+				_innerLayout.PackEnd(view);
+			}
+
+			Adaptor.SetBinding(view, index);
+			return view;
+		}
+
+		void ICollectionViewController.UnrealizeView(EvasObject view)
+		{
+			System.Console.WriteLine($"UnrealizeView {view}");
+			view.Hide();
+			_pool.AddRecyclerView(view);
+		}
+
+		protected virtual EScroller CreateScroller(EvasObject parent)
+		{
+			return new EScroller(parent);
+		}
+
 		void OnLayoutManagerChanging()
 		{
 			_layoutManager?.Reset();
 		}
+
 		void OnLayoutManagerChanged()
 		{
 			if (_layoutManager == null)
@@ -155,7 +210,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				return;
 
 			_itemSize = new ESize(-1, -1);
-
 			(Adaptor as INotifyCollectionChanged).CollectionChanged += OnCollectionChanged;
 
 			RequestLayoutItems();
@@ -201,7 +255,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		}
 
 		Rect _lastGeometry;
-
 		void OnLayout()
 		{
 			System.Console.WriteLine($"CollectionView : OnLayout {Geometry}");
@@ -223,7 +276,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-
 		void RequestLayoutItems()
 		{
 			if (!_requestLayoutItems)
@@ -241,7 +293,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-
 		void OnInnerLayout()
 		{
 
@@ -250,17 +301,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			var size = _layoutManager.GetScrollCanvasSize();
 			_innerLayout.MinimumWidth = size.Width;
 			_innerLayout.MinimumHeight = size.Height;
-
-			// elm-scroller updates the CurrentRegion after render
-			/*
-			Device.BeginInvokeOnMainThread(() =>
-			{
-				if (Scroller != null)
-				{
-					OnScrolled(Scroller, EventArgs.Empty);
-				}
-			});
-			*/
 		}
 
 		void OnScrolled(object sender, EventArgs e)
@@ -268,59 +308,38 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_layoutManager.LayoutItems(Scroller.CurrentRegion);
 		}
 
-		ESize _itemSize = new ESize(-1, -1);
-		ESize ICollectionViewController.GetItemSize()
+		void UpdateSnapPointsType(SnapPointsType snapPoints)
 		{
-			if (_itemSize.Width > 0 && _itemSize.Height > 0)
+			var itemSize = new ESize(0, 0);
+			switch (snapPoints)
 			{
-				return _itemSize;
+				case SnapPointsType.None:
+					Scroller.HorizontalPageScrollLimit = 0;
+					Scroller.VerticalPageScrollLimit = 0;
+					break;
+				case SnapPointsType.MandatorySingle:
+					Scroller.HorizontalPageScrollLimit = 1;
+					Scroller.VerticalPageScrollLimit = 1;
+					itemSize = (this as ICollectionViewController).GetItemSize();
+					break;
+				case SnapPointsType.Mandatory:
+					Scroller.HorizontalPageScrollLimit = 0;
+					Scroller.VerticalPageScrollLimit = 0;
+					itemSize = (this as ICollectionViewController).GetItemSize();
+					break;
 			}
-			_itemSize = Adaptor.MeasureItem(AllocatedSize.Width, AllocatedSize.Height);
-			if (_itemSize.Width <= 0)
-				_itemSize.Width = 50;
-			if (_itemSize.Height <= 0)
-				_itemSize.Height = 50;
-
-			//Scroller.SetPageSize(_itemSize.Width, _itemSize.Height);
-
-			return _itemSize;
-		}
-
-		EvasObject ICollectionViewController.RealizeView(int index)
-		{
-			System.Console.WriteLine($"RealizeView {index}");
-			if (Adaptor == null)
-				return null;
-
-			var view = _pool.GetRecyclerView();
-			if (view != null)
-			{
-				System.Console.WriteLine($"!!!! Recycled!!");
-				view.Show();
-			}
-			else
-			{
-				view = Adaptor.CreateNativeView(this);
-				_innerLayout.PackEnd(view);
-			}
-
-			Adaptor.SetBinding(view, index);
-			return view;
-		}
-
-		void ICollectionViewController.UnrealizeView(EvasObject view)
-		{
-			System.Console.WriteLine($"UnrealizeView {view}");
-			view.Hide();
-			_pool.AddRecyclerView(view);
+			Scroller.SetPageSize(itemSize.Width, itemSize.Height);
 		}
 	}
 
 	public interface ICollectionViewController
 	{
 		EPoint ParentPosition { get; }
+
 		EvasObject RealizeView(int index);
+
 		void UnrealizeView(EvasObject view);
+
 		int Count { get; }
 
 		ESize GetItemSize();

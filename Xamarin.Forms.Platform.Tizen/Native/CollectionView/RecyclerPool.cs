@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ElmSharp;
 
 namespace Xamarin.Forms.Platform.Tizen.Native
