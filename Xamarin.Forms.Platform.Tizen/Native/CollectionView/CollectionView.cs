@@ -84,9 +84,24 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		public void ScrollTo(int index, ScrollToPosition position = ScrollToPosition.MakeVisible, bool animate = true)
 		{
 			var bound = LayoutManager.GetItemBound(index);
-
 			if (LayoutManager.IsHorizontal)
 			{
+				if (position == ScrollToPosition.MakeVisible)
+				{
+					if (bound.Left < Scroller.CurrentRegion.Left)
+					{
+						position = ScrollToPosition.Start;
+					}
+					else if (bound.Right > Scroller.CurrentRegion.Right)
+					{
+						position = ScrollToPosition.End;
+					}
+					else
+					{
+						// Already visible
+						return;
+					}
+				}
 				if (bound.Width < AllocatedSize.Width)
 				{
 					switch (position)
@@ -103,6 +118,23 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 			else
 			{
+				if (position == ScrollToPosition.MakeVisible)
+				{
+					if (bound.Top < Scroller.CurrentRegion.Top)
+					{
+						position = ScrollToPosition.Start;
+					}
+					else if (bound.Bottom > Scroller.CurrentRegion.Bottom)
+					{
+						position = ScrollToPosition.End;
+					}
+					else
+					{
+						// Already visible
+						return;
+					}
+				}
+
 				if (bound.Height < AllocatedSize.Height)
 				{
 					switch (position)
