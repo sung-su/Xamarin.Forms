@@ -14,7 +14,7 @@ namespace CollectionViewTest
 	{
 		public EmptyViewNullGallery()
 		{
-			InitializeComponent();
+			// InitializeComponent();
 		}
 	}
 }

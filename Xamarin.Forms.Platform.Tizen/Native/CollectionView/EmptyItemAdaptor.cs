@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -11,10 +12,12 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		static DataTemplate s_defaultEmptyTemplate = new DataTemplate(typeof(EmptyView));
 		public EmptyItemAdaptor(ItemsView itemsView, IEnumerable items, DataTemplate template) : base(itemsView, items, template)
 		{
+			Console.WriteLine($"@@@@ EmptyItemAdaptor.EmptyItemAdaptor");
 		}
 
 		public static EmptyItemAdaptor Create(ItemsView itemsView)
 		{
+			Console.WriteLine($"@@@@ EmptyItemAdaptor.Create");
 			DataTemplate template = itemsView.EmptyViewTemplate ?? s_defaultEmptyTemplate;
 			var empty = new List<object>
 			{

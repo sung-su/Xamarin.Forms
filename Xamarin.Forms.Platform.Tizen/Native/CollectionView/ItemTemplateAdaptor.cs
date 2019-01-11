@@ -16,12 +16,14 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public ItemTemplateAdaptor(ItemsView itemsView) : base(itemsView.ItemsSource)
 		{
+			System.Console.WriteLine($"@@@@ ItemTemplateAdaptor.ItemTemplateAdaptor (1/3)");
 			_template = itemsView.ItemTemplate;
 			_itemsView = itemsView;
 		}
 
 		protected ItemTemplateAdaptor(ItemsView itemsView, IEnumerable items, DataTemplate template) : base(items)
 		{
+			System.Console.WriteLine($"@@@@ ItemTemplateAdaptor.ItemTemplateAdaptor with template (1/3)");
 			_template = template;
 			_itemsView = itemsView;
 		}
@@ -29,6 +31,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public override EvasObject CreateNativeView(EvasObject parent)
 		{
+			System.Console.WriteLine($"@@@@ ItemTemplateAdaptor.CreateNativeView (2/3)");
 			System.Console.WriteLine($"CreateNativeView");
 			var view = _template.CreateContent() as View;
 			var renderer = Platform.GetOrCreateRenderer(view);
@@ -61,6 +64,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public override ESize MeasureItem(int widthConstraint, int heightConstraint)
 		{
+			System.Console.WriteLine($"@@@@ ItemTemplateAdaptor.MeasureItem (3/3)");
 			System.Console.WriteLine($"MeasureItem {widthConstraint} , {heightConstraint}");
 			var view = _template.CreateContent() as View;
 			var renderer = Platform.GetOrCreateRenderer(view);
@@ -71,6 +75,5 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 			return request.ToPixel();
 		}
-
 	}
 }

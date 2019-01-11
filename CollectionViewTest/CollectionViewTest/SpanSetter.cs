@@ -20,7 +20,7 @@ namespace CollectionViewTest
 
 			var button = new Button { Text = "Update" };
 			var label = new Label { Text = "Span:", VerticalTextAlignment = TextAlignment.Center };
-			_entry = new Entry { Keyboard = Keyboard.Numeric, Text = "3", WidthRequest = 200 };
+			_entry = new Entry { Keyboard = Keyboard.Numeric, Text = "2", WidthRequest = 200 };
 
 			layout.Children.Add(label);
 			layout.Children.Add(_entry);

@@ -1,7 +1,9 @@
 ﻿using Tizen.Applications;
 using ElmSharp;
+using Xamarin.Forms.Platform.Tizen.Native;
+using System.Collections.Generic;
 
-namespace App2.Tizen
+namespace CollectionViewTest.Single.Tizen
 {
     class App : CoreUIApplication
     {
@@ -9,9 +11,50 @@ namespace App2.Tizen
         {
             base.OnCreate();
             // Initialize();
+			test();
         }
 
-        void Initialize()
+		void test()
+		{
+
+			Window window = new Window("ElmSharpApp")
+			{
+				AvailableRotations = DisplayRotation.Degree_0 | DisplayRotation.Degree_180 | DisplayRotation.Degree_270 | DisplayRotation.Degree_90
+			};
+			window.BackButtonPressed += (s, e) =>
+			{
+				Exit();
+			};
+			window.Show();
+
+
+			var cv = new CollectionView(window);
+			//var manager = new LinearLayoutManager(false);
+			//manager.CollectionView = cv;
+			//cv.LayoutManager = manager;
+			//var item = new ElmSharp.Label(window)
+			//{
+			//	Text = "label",
+			//	Color = Color.Black
+			//};
+			//var list = new List<ElmSharp.Label>();
+			//list.Add(item);
+			//var adaptor = new EmptyItemAdaptor(null, list, null);
+			cv.Show();
+
+			var bg = new Background(window)
+			{
+				Color = Color.Purple
+			};
+			bg.SetContent(cv);
+
+			var conformant = new Conformant(window);
+			conformant.Show();
+			conformant.SetContent(bg);
+
+		}
+
+		void Initialize()
         {
             Window window = new Window("ElmSharpApp")
             {
@@ -23,7 +66,7 @@ namespace App2.Tizen
             };
             window.Show();
 
-            var box = new Box(window)
+			var box = new ElmSharp.Box(window)
             {
                 AlignmentX = -1,
                 AlignmentY = -1,
@@ -42,7 +85,7 @@ namespace App2.Tizen
             conformant.Show();
             conformant.SetContent(bg);
 
-            var label = new Label(window)
+            var label = new ElmSharp.Label(window)
             {
                 Text = "Hello, Tizen",
                 Color = Color.Black

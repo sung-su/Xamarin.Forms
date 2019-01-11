@@ -5,7 +5,41 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EmptyViewGalleries\**" />
+    <EmbeddedResource Remove="EmptyViewGalleries\**" />
+    <None Remove="EmptyViewGalleries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="CollectionModifier.cs" />
+    <Compile Remove="DataTemplateGallery.cs" />
+    <Compile Remove="DemoFilteredItemSource.cs" />
+    <Compile Remove="EnumSelector.cs" />
+    <Compile Remove="ExampleTemplates.cs" />
+    <Compile Remove="FilterCollectionView.xaml.cs" />
+    <Compile Remove="ItemAdder.cs" />
+    <Compile Remove="ItemRemover.cs" />
+    <Compile Remove="ItemReplacer.cs" />
+    <Compile Remove="ObservableCodeCollectionViewGridGallery.cs" />
+    <Compile Remove="ObservableCollectionGallery.cs" />
+    <Compile Remove="ScrollToCodeGallery.cs" />
+    <Compile Remove="ScrollToGallery.cs" />
+    <Compile Remove="ScrollToIndexControl.cs" />
+    <Compile Remove="ScrollToItemControl.cs" />
+    <Compile Remove="SnapPointsCodeGallery.cs" />
+    <Compile Remove="SnapPointsGallery.cs" />
+    <Compile Remove="TemplateCodeCollectionViewGallery.cs" />
+    <Compile Remove="TemplateCodeCollectionViewGridGallery.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="CollectionViewTest.xaml" />
+    <None Remove="FilterCollectionView.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="EmptyViewGalleries\EmptyViewGallery.cs" />
+    <Compile Include="EmptyViewGalleries\EmptyViewNullGallery.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,9 +49,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Xamarin.Forms.Build.Tasks\Xamarin.Forms.Build.Tasks.csproj" />
+    <Page Include="EmptyViewGalleries\EmptyViewNullGallery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EmptyViewGalleries\EmptyViewStringGallery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EmptyViewGalleries\EmptyViewTemplateGallery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EmptyViewGalleries\EmptyViewViewGallery.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Xamarin.Forms.Core\Xamarin.Forms.Core.csproj" />
-    <ProjectReference Include="..\..\Xamarin.Forms.CustomAttributes\Xamarin.Forms.CustomAttributes.csproj" />
     <ProjectReference Include="..\..\Xamarin.Forms.Maps\Xamarin.Forms.Maps.csproj" />
     <ProjectReference Include="..\..\Xamarin.Forms.Platform\Xamarin.Forms.Platform.csproj" />
     <ProjectReference Include="..\..\Xamarin.Forms.Xaml\Xamarin.Forms.Xaml.csproj" />

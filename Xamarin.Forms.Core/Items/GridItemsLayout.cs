@@ -14,11 +14,13 @@
 
 		public GridItemsLayout([Parameter("Orientation")] ItemsLayoutOrientation orientation) : base(orientation)
 		{
+			System.Console.WriteLine($"@@@@ GridItemsLayout.GridItemsLayout (1/1)");
 		}
 
 		public GridItemsLayout(int span, [Parameter("Orientation")] ItemsLayoutOrientation orientation) :
 			base(orientation)
 		{
+			System.Console.WriteLine($"@@@@ GridItemsLayout.GridItemsLayout (1/1) [{span}]");
 			Span = span;
 		}
 	}

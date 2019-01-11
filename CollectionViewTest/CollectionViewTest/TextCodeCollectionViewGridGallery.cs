@@ -18,7 +18,10 @@ namespace CollectionViewTest
 
 			var itemsLayout = new GridItemsLayout(2, orientation);
 
-			var collectionView = new CollectionView {ItemsLayout = itemsLayout};
+			var collectionView = new CollectionView
+			{
+				ItemsLayout = itemsLayout
+			};
 
 			var generator = new ItemsSourceGenerator(collectionView);
 			var spanSetter = new SpanSetter(collectionView);

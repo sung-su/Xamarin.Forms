@@ -27,9 +27,9 @@ namespace CollectionViewTest
 							new TextCodeCollectionViewGallery(ListItemsLayout.VerticalList), Navigation),
 						GalleryBuilder.NavButton("Horizontal List (Code)", () => 
 							new TextCodeCollectionViewGallery(ListItemsLayout.HorizontalList), Navigation),
-						GalleryBuilder.NavButton("Vertical Grid (Code)", () => 
+						GalleryBuilder.NavButton("Vertical Grid (Code)", () =>
 							new TextCodeCollectionViewGridGallery(), Navigation),
-						GalleryBuilder.NavButton("Horizontal Grid (Code)", () => 
+						GalleryBuilder.NavButton("Horizontal Grid (Code)", () =>
 							new TextCodeCollectionViewGridGallery(ItemsLayoutOrientation.Horizontal), Navigation),
 					}
 				}

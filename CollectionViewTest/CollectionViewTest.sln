@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xamarin.Forms.Maps", "..\Xa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xamarin.Forms.Maps.Tizen", "..\Xamarin.Forms.Maps.Tizen\Xamarin.Forms.Maps.Tizen.csproj", "{5927E151-0A2E-4391-ADDB-7126E1736BCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollectionViewTest.Single.Tizen", "CollectionViewTest.Single.Tizen\CollectionViewTest.Single.Tizen.csproj", "{422330C0-BAB1-4A73-89D7-1595BB9DECBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.Forms.Platform.Android", "..\Xamarin.Forms.Platform.Android\Xamarin.Forms.Platform.Android.csproj", "{0E16E70A-D6DD-4323-AD5D-363ABFF42D6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{5927E151-0A2E-4391-ADDB-7126E1736BCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5927E151-0A2E-4391-ADDB-7126E1736BCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5927E151-0A2E-4391-ADDB-7126E1736BCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{422330C0-BAB1-4A73-89D7-1595BB9DECBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{422330C0-BAB1-4A73-89D7-1595BB9DECBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{422330C0-BAB1-4A73-89D7-1595BB9DECBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{422330C0-BAB1-4A73-89D7-1595BB9DECBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E16E70A-D6DD-4323-AD5D-363ABFF42D6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E16E70A-D6DD-4323-AD5D-363ABFF42D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E16E70A-D6DD-4323-AD5D-363ABFF42D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E16E70A-D6DD-4323-AD5D-363ABFF42D6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -43,6 +43,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				UpdateSnapPointsType(_snapPoints);
 			}
 		}
+		public int Span { get; set; }
 
 		protected EScroller Scroller { get; }
 
@@ -214,11 +215,13 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnLayoutManagerChanging()
 		{
+			System.Console.WriteLine($"@@@@ CollectionView.OnLayoutManagerChanging (1)");
 			_layoutManager?.Reset();
 		}
 
 		void OnLayoutManagerChanged()
 		{
+			System.Console.WriteLine($"@@@@ CollectionView.OnLayoutManagerChanged (2)");
 			if (_layoutManager == null)
 				return;
 
@@ -229,6 +232,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnAdaptorChanging()
 		{
+			System.Console.WriteLine($"@@@@ CollectionView.OnAdaptorChanging (3)");
 			_layoutManager?.Reset();
 			if (Adaptor != null)
 			{
@@ -238,6 +242,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		}
 		void OnAdaptorChanged()
 		{
+			System.Console.WriteLine($"@@@@ CollectionView.OnAdaptorChanged (4)");
 			if (_adaptor == null)
 				return;
 

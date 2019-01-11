@@ -15,11 +15,13 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		protected ItemAdaptor(IEnumerable items)
 		{
+			System.Console.WriteLine($"@@@@ ItemAdaptor.ItemAdaptor (1/2)");
 			SetItemsSource(items);
 		}
 
 		protected void SetItemsSource(IEnumerable items)
 		{
+			System.Console.WriteLine($"@@@@ ItemAdaptor.SetItemsSource (2/2)");
 			switch (items)
 			{
 				case IList list:

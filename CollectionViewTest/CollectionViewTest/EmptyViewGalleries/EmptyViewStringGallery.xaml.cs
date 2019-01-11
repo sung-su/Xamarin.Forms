@@ -10,7 +10,7 @@ namespace CollectionViewTest
 
 		public EmptyViewStringGallery()
 		{
-			InitializeComponent();
+			// InitializeComponent();
 
 			CollectionView.ItemTemplate = ExampleTemplates.PhotoTemplate();
 
