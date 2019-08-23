@@ -10,24 +10,25 @@ using EPoint = ElmSharp.Point;
 
 namespace Xamarin.Forms.Platform.Tizen.Native
 {
-	public class CollectionView : ItemsView, ICollectionViewController
+	public class ItemsView : EBox, IItemsViewController
 	{
-		RecyclerPool _pool = new RecyclerPool();
-		ICollectionViewLayoutManager _layoutManager;
+		RecyclerPool _pool = new RecyclerPool(); // need ?
+		IItemsViewLayoutManager _layoutManager;
 		ItemAdaptor _adaptor;
 		EBox _innerLayout;
 		EvasObject _emptyView;
 
 		Dictionary<ViewHolder, int> _viewHolderIndexTable = new Dictionary<ViewHolder, int>();
-		ViewHolder _lastSelectedViewHolder;
-		int _selectedItemIndex = -1;
-		CollectionViewSelectionMode _selectionMode = CollectionViewSelectionMode.None;
+		ViewHolder _lastSelectedViewHolder; // View holder == view
+
+		//int _selectedItemIndex = -1;
+		//CollectionViewSelectionMode _selectionMode = CollectionViewSelectionMode.None;
 
 		bool _requestLayoutItems = false;
-		SnapPointsType _snapPoints;
+		//SnapPointsType _snapPoints;
 		ESize _itemSize = new ESize(-1, -1);
 
-		public CollectionView(EvasObject parent) : base(parent)
+		public ItemsView(EvasObject parent) : base(parent)
 		{
 			SetLayoutCallback(OnLayout);
 			Scroller = CreateScroller(parent);
@@ -41,38 +42,38 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			Scroller.SetContent(_innerLayout);
 		}
 
-		public CollectionViewSelectionMode SelectionMode
-		{
-			get => _selectionMode;
-			set
-			{
-				_selectionMode = value;
-				UpdateSelectionMode();
-			}
-		}
+		//public CollectionViewSelectionMode SelectionMode
+		//{
+		//	get => _selectionMode;
+		//	set
+		//	{
+		//		_selectionMode = value;
+		//		UpdateSelectionMode();
+		//	}
+		//}
 
-		public int SelectedItemIndex
-		{
-			get => _selectedItemIndex;
-			set
-			{
-				if (_selectedItemIndex != value)
-				{
-					_selectedItemIndex = value;
-					UpdateSelectedItemIndex();
-				}
-			}
-		}
+		//public int SelectedItemIndex
+		//{
+		//	get => _selectedItemIndex;
+		//	set
+		//	{
+		//		if (_selectedItemIndex != value)
+		//		{
+		//			_selectedItemIndex = value;
+		//			UpdateSelectedItemIndex();
+		//		}
+		//	}
+		//}
 
-		public SnapPointsType SnapPointsType
-		{
-			get => _snapPoints;
-			set
-			{
-				_snapPoints = value;
-				UpdateSnapPointsType(_snapPoints);
-			}
-		}
+		//public SnapPointsType SnapPointsType
+		//{
+		//	get => _snapPoints;
+		//	set
+		//	{
+		//		_snapPoints = value;
+		//		UpdateSnapPointsType(_snapPoints);
+		//	}
+		//}
 
 		protected EScroller Scroller { get; }
 
@@ -98,7 +99,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-		int ICollectionViewController.Count
+		int IItemsViewController.Count
 		{
 			get
 			{
@@ -108,7 +109,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-		EPoint ICollectionViewController.ParentPosition => new EPoint
+		EPoint IItemsViewController.ParentPosition => new EPoint
 		{
 			X = Scroller.Geometry.X - Scroller.CurrentRegion.X,
 			Y = Scroller.Geometry.Y - Scroller.CurrentRegion.Y
@@ -203,14 +204,14 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			LayoutManager?.ItemMeasureInvalidated(index);
 		}
 
-		void ICollectionViewController.RequestLayoutItems() => RequestLayoutItems();
+		void IItemsViewController.RequestLayoutItems() => RequestLayoutItems();
 
-		ESize ICollectionViewController.GetItemSize()
+		ESize IItemsViewController.GetItemSize()
 		{
 			return (this as ICollectionViewController).GetItemSize(LayoutManager.IsHorizontal ? AllocatedSize.Width * 100 : AllocatedSize.Width, LayoutManager.IsHorizontal ? AllocatedSize.Height : AllocatedSize.Height * 100);
 		}
 
-		ESize ICollectionViewController.GetItemSize(int widthConstraint, int heightConstraint)
+		ESize IItemsViewController.GetItemSize(int widthConstraint, int heightConstraint)
 		{
 			if (Adaptor == null)
 			{
@@ -233,7 +234,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return _itemSize;
 		}
 
-		ESize ICollectionViewController.GetItemSize(int index, int widthConstraint, int heightConstraint)
+		ESize IItemsViewController.GetItemSize(int index, int widthConstraint, int heightConstraint)
 		{
 			if (Adaptor == null)
 			{
@@ -242,7 +243,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return Adaptor.MeasureItem(index, widthConstraint, heightConstraint);
 		}
 
-		ViewHolder ICollectionViewController.RealizeView(int index)
+		ViewHolder IItemsViewController.RealizeView(int index)
 		{
 			if (Adaptor == null)
 				return null;
@@ -264,38 +265,40 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 			Adaptor.SetBinding(holder.Content, index);
 			_viewHolderIndexTable[holder] = index;
-			if (index == SelectedItemIndex)
-			{
-				OnRequestItemSelection(holder, EventArgs.Empty);
-			}
+			//if (index == SelectedItemIndex)
+			//{
+			//	OnRequestItemSelection(holder, EventArgs.Empty);
+			//}
 			return holder;
 		}
 
-		void OnRequestItemSelection(object sender, EventArgs e)
+		//void OnRequestItemSelection(object sender, EventArgs e)
+		//{
+		//	if (SelectionMode == CollectionViewSelectionMode.None)
+		//		return;
+
+
+		//	if (_lastSelectedViewHolder != null)
+		//	{
+		//		_lastSelectedViewHolder.State = ViewHolderState.Normal;
+		//	}
+
+		//	_lastSelectedViewHolder = sender as ViewHolder;
+		//	if (_lastSelectedViewHolder != null)
+		//	{
+		//		_lastSelectedViewHolder.State = ViewHolderState.Selected;
+		//		if (_viewHolderIndexTable.TryGetValue(_lastSelectedViewHolder, out int index))
+		//		{
+		//			_selectedItemIndex = index;
+		//			Adaptor?.SendItemSelected(index);
+		//		}
+		//	}
+		//}
+
+		void IItemsViewController.UnrealizeView(ViewHolder view)
 		{
-			if (SelectionMode == CollectionViewSelectionMode.None)
-				return;
+			Adaptor.UnBinding(view.Content);
 
-
-			if (_lastSelectedViewHolder != null)
-			{
-				_lastSelectedViewHolder.State = ViewHolderState.Normal;
-			}
-
-			_lastSelectedViewHolder = sender as ViewHolder;
-			if (_lastSelectedViewHolder != null)
-			{
-				_lastSelectedViewHolder.State = ViewHolderState.Selected;
-				if (_viewHolderIndexTable.TryGetValue(_lastSelectedViewHolder, out int index))
-				{
-					_selectedItemIndex = index;
-					Adaptor?.SendItemSelected(index);
-				}
-			}
-		}
-
-		void ICollectionViewController.UnrealizeView(ViewHolder view)
-		{
 			_viewHolderIndexTable.Remove(view);
 			Adaptor.UnBinding(view.Content);
 			view.ResetState();
@@ -307,7 +310,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
-		void ICollectionViewController.ContentSizeUpdated()
+		void IItemsViewController.ContentSizeUpdated()
 		{
 			OnInnerLayout();
 		}
@@ -317,35 +320,35 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return new EScroller(parent);
 		}
 
-		void UpdateSelectedItemIndex()
-		{
-			if (SelectionMode == CollectionViewSelectionMode.None)
-				return;
+		//void UpdateSelectedItemIndex()
+		//{
+		//	if (SelectionMode == CollectionViewSelectionMode.None)
+		//		return;
 
-			ViewHolder holder = null;
-			foreach (var item in _viewHolderIndexTable)
-			{
-				if (item.Value == SelectedItemIndex)
-				{
-					holder = item.Key;
-					break;
-				}
-			}
-			OnRequestItemSelection(holder, EventArgs.Empty);
-		}
+		//	ViewHolder holder = null;
+		//	foreach (var item in _viewHolderIndexTable)
+		//	{
+		//		if (item.Value == SelectedItemIndex)
+		//		{
+		//			holder = item.Key;
+		//			break;
+		//		}
+		//	}
+		//	OnRequestItemSelection(holder, EventArgs.Empty);
+		//}
 
-		void UpdateSelectionMode()
-		{
-			if (SelectionMode == CollectionViewSelectionMode.None)
-			{
-				if (_lastSelectedViewHolder != null)
-				{
-					_lastSelectedViewHolder.State = ViewHolderState.Normal;
-					_lastSelectedViewHolder = null;
-				}
-				_selectedItemIndex = -1;
-			}
-		}
+		//void UpdateSelectionMode()
+		//{
+		//	if (SelectionMode == CollectionViewSelectionMode.None)
+		//	{
+		//		if (_lastSelectedViewHolder != null)
+		//		{
+		//			_lastSelectedViewHolder.State = ViewHolderState.Normal;
+		//			_lastSelectedViewHolder = null;
+		//		}
+		//		_selectedItemIndex = -1;
+		//	}
+		//}
 
 		void OnLayoutManagerChanging()
 		{
@@ -524,28 +527,28 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_layoutManager.LayoutItems(Scroller.CurrentRegion);
 		}
 
-		void UpdateSnapPointsType(SnapPointsType snapPoints)
-		{
-			var itemSize = new ESize(0, 0);
-			switch (snapPoints)
-			{
-				case SnapPointsType.None:
-					Scroller.HorizontalPageScrollLimit = 0;
-					Scroller.VerticalPageScrollLimit = 0;
-					break;
-				case SnapPointsType.MandatorySingle:
-					Scroller.HorizontalPageScrollLimit = 1;
-					Scroller.VerticalPageScrollLimit = 1;
-					itemSize = (this as ICollectionViewController).GetItemSize();
-					break;
-				case SnapPointsType.Mandatory:
-					Scroller.HorizontalPageScrollLimit = 0;
-					Scroller.VerticalPageScrollLimit = 0;
-					itemSize = (this as ICollectionViewController).GetItemSize();
-					break;
-			}
-			Scroller.SetPageSize(itemSize.Width, itemSize.Height);
-		}
+		//void UpdateSnapPointsType(SnapPointsType snapPoints)
+		//{
+		//	var itemSize = new ESize(0, 0);
+		//	switch (snapPoints)
+		//	{
+		//		case SnapPointsType.None:
+		//			Scroller.HorizontalPageScrollLimit = 0;
+		//			Scroller.VerticalPageScrollLimit = 0;
+		//			break;
+		//		case SnapPointsType.MandatorySingle:
+		//			Scroller.HorizontalPageScrollLimit = 1;
+		//			Scroller.VerticalPageScrollLimit = 1;
+		//			itemSize = (this as IItemsViewController).GetItemSize();
+		//			break;
+		//		case SnapPointsType.Mandatory:
+		//			Scroller.HorizontalPageScrollLimit = 0;
+		//			Scroller.VerticalPageScrollLimit = 0;
+		//			itemSize = (this as IItemsViewController).GetItemSize();
+		//			break;
+		//	}
+		//	Scroller.SetPageSize(itemSize.Width, itemSize.Height);
+		//}
 
 		void CreateEmptyView()
 		{
@@ -568,7 +571,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		}
 	}
 
-	public interface ICollectionViewController
+	public interface IItemsViewController
 	{
 		EPoint ParentPosition { get; }
 
@@ -587,11 +590,5 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		ESize GetItemSize(int index, int widthConstraint, int heightConstraint);
 
 		void ContentSizeUpdated();
-	}
-
-	public enum CollectionViewSelectionMode
-	{
-		None,
-		Single,
 	}
 }
