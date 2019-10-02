@@ -174,12 +174,18 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnItemMeasureInvalidated(object sender, EventArgs e)
 		{
+			Console.WriteLine($"@@@@ asdf OnItemMeasureInvalidated 1 /*");
 			var data = (sender as View)?.BindingContext ?? null;
 			int index = GetItemIndex(data);
 			if (index != -1)
 			{
-				CollectionView.ItemMeasureInvalidated(index);
+				Console.WriteLine($"@@@@ asdf OnItemMeasureInvalidated 2");
+				if (_itemsView is Xamarin.Forms.CollectionView)
+					CollectionView.ItemMeasureInvalidated(index);
+				else if (_itemsView is Xamarin.Forms.CarouselView)
+					CarouselView.ItemMeasureInvalidated(index);
 			}
+			Console.WriteLine($"@@@@ asdf OnItemMeasureInvalidated 3 */");
 		}
 	}
 }

@@ -15,6 +15,9 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public CollectionView CollectionView { get; set; }
 
+
+		public CarouselView CarouselView { get; set; }
+
 		protected ItemAdaptor(IEnumerable items)
 		{
 			SetItemsSource(items);
@@ -32,6 +35,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			if (CollectionView != null)
 			{
 				CollectionView.SelectedItemIndex = _itemsSource.IndexOf(item);
+			}
+			if (CarouselView != null)
+			{
+				CarouselView.SelectedItemIndex = _itemsSource.IndexOf(item);
 			}
 		}
 

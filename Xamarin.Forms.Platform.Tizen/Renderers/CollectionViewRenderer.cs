@@ -5,15 +5,15 @@ using Xamarin.Forms.Platform.Tizen.Native;
 
 namespace Xamarin.Forms.Platform.Tizen
 {
-	public class ItemsViewRenderer : ViewRenderer<StructuredItemsView, Native.CollectionView>
+	public class CollectionViewRenderer : ViewRenderer<StructuredItemsView, Native.CollectionView>
 	{
 		INotifyCollectionChanged _observableSource;
 
-		public ItemsViewRenderer()
+		public CollectionViewRenderer()
 		{
 			RegisterPropertyHandler(ItemsView.ItemsSourceProperty, UpdateItemsSource);
 			RegisterPropertyHandler(ItemsView.ItemTemplateProperty, UpdateAdaptor);
-			RegisterPropertyHandler(StructuredItemsView.ItemsLayoutProperty, UpdateItemsLayout);
+			RegisterPropertyHandler(StructuredItemsView.ItemsLayoutProperty, UpdateItemsLayout); // SelectableItemsView : StructuredItemsView : ItemsView
 			RegisterPropertyHandler(ItemsView.ItemSizingStrategyProperty, UpdateSizingStrategy);
 			RegisterPropertyHandler(SelectableItemsView.SelectedItemProperty, UpdateSelectedItem);
 			RegisterPropertyHandler(SelectableItemsView.SelectionModeProperty, UpdateSelectionMode);
