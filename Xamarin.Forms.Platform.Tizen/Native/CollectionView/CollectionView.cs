@@ -27,6 +27,9 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		SnapPointsType _snapPoints;
 		ESize _itemSize = new ESize(-1, -1);
 
+		public event EventHandler<EventArgs> DragStart;
+		public event EventHandler<EventArgs> DragStop;
+
 		public CollectionView(EvasObject parent) : base(parent)
 		{
 			SetLayoutCallback(OnLayout);
@@ -34,6 +37,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			Scroller.Show();
 			PackEnd(Scroller);
 			Scroller.Scrolled += OnScrolled;
+
+			Scroller.ScrollBlock = ScrollBlock.None;
+			Scroller.DragStart += (s, e) => { DragStart?.Invoke(s, e); };
+			Scroller.DragStop += (s, e) => { DragStop?.Invoke(s, e); };
 
 			_innerLayout = new EBox(parent);
 			_innerLayout.SetLayoutCallback(OnInnerLayout);
@@ -196,6 +203,47 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		public void ScrollTo(object item, ScrollToPosition position = ScrollToPosition.MakeVisible, bool animate = true)
 		{
 			ScrollTo(Adaptor.GetItemIndex(item), position, animate);
+		}
+
+		public void SetScrollBounce(bool enabled)
+		{
+			if (enabled)
+			{
+				if (_layoutManager.IsHorizontal)
+				{
+					Scroller.HorizontalBounce = true;
+					Scroller.VerticalBounce = false;
+				}
+				else
+				{
+					Scroller.HorizontalBounce = false;
+					Scroller.VerticalBounce = true;
+				}
+			}
+			else
+			{
+				Scroller.HorizontalBounce = false;
+				Scroller.VerticalBounce = false;
+			}
+		}
+
+		public void SetScrollBlock(bool enabled)
+		{
+			if (enabled)
+			{
+				if (_layoutManager.IsHorizontal)
+				{
+					Scroller.ScrollBlock = ScrollBlock.Horizontal;
+				}
+				else
+				{
+					Scroller.ScrollBlock = ScrollBlock.Vertical;
+				}
+			}
+			else
+			{
+				Scroller.ScrollBlock = ScrollBlock.None;
+			}
 		}
 
 		public void ItemMeasureInvalidated(int index)
@@ -482,7 +530,6 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 			_lastGeometry = Geometry;
 			Scroller.Geometry = Geometry;
-			Scroller.ScrollBlock = ScrollBlock.None;
 			AllocatedSize = Geometry.Size;
 			_itemSize = new ESize(-1, -1);
 

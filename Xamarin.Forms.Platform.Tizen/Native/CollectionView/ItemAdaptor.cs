@@ -90,6 +90,11 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return _itemsSource.IndexOf(item);
 		}
 
+		public object GetItemFromIndex(int index)
+		{
+			return _itemsSource[index];
+		}
+
 		public virtual object GetViewCategory(int index)
 		{
 			return this;
