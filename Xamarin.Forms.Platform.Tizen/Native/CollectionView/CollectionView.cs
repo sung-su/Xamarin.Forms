@@ -27,6 +27,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		SnapPointsType _snapPoints;
 		ESize _itemSize = new ESize(-1, -1);
 
+		public event EventHandler<ItemsViewScrolledEventArgs> Scrolled;
+
 		public CollectionView(EvasObject parent) : base(parent)
 		{
 			SetLayoutCallback(OnLayout);
@@ -522,9 +524,25 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			_innerLayout.MinimumHeight = size.Height;
 		}
 
+		int _previousHorizontalOffset = 0;
+		int _previousVerticalOffset = 0;
 		void OnScrolled(object sender, EventArgs e)
 		{
-			_layoutManager.LayoutItems(Scroller.CurrentRegion);
+			_layoutManager.LayoutItems(ViewPort);
+			var indexes = _layoutManager.GetVisibleItemIndexes(ViewPort);
+			var args = new ItemsViewScrolledEventArgs();
+			args.FirstVisibleItemIndex = indexes.firstVisibleItemIndex;
+			args.CenterItemIndex = indexes.centerVisibleItemIndex;
+			args.LastVisibleItemIndex = indexes.lastVisibleItemIndex;
+			args.HorizontalOffset = ViewPort.X;
+			args.HorizontalDelta = ViewPort.X - _previousHorizontalOffset;
+			args.VerticalOffset = ViewPort.Y;
+			args.VerticalDelta = ViewPort.Y - _previousVerticalOffset;
+
+			Scrolled?.Invoke(this, args);
+
+			_previousHorizontalOffset = ViewPort.X;
+			_previousVerticalOffset = ViewPort.Y;
 		}
 
 		void UpdateSnapPointsType(SnapPointsType snapPoints)

@@ -338,6 +338,36 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			}
 		}
 
+		public (int, int, int) GetVisibleItemIndexes(Rect viewPort)
+		{
+			int firstVisibleItemIndex = -1;
+			int lastVisibleItemIndex = -1;
+			int centerVisibleItemIndex = -1;
+
+			firstVisibleItemIndex = GetVisibleItemIndex(viewPort.X, viewPort.Y);
+			centerVisibleItemIndex = GetVisibleItemIndex(viewPort.X + (viewPort.Width / 2), viewPort.Y + (viewPort.Height / 2));
+			lastVisibleItemIndex = GetVisibleItemIndex(viewPort.X + viewPort.Width, viewPort.Y + viewPort.Height);
+
+			return (firstVisibleItemIndex, centerVisibleItemIndex, lastVisibleItemIndex);
+		}
+
+		public int GetVisibleItemIndex(int x, int y)
+		{
+			int index = -1;
+			if (x < 0 || y < 0)
+				return index;
+			if (_scrollCanvasSize.Width < x || _scrollCanvasSize.Height < y)
+				return index;
+
+			int first = (IsHorizontal ? x : y) / BaseItemSize;
+			int second = (IsHorizontal ? y : x) / ColumnSize;
+			index = (first * Span) + second;
+
+			if (index < CollectionView.Count)
+				return index;
+			return -1;
+		}
+
 		void InitializeMeasureCache()
 		{
 			_baseItemSize = 0;

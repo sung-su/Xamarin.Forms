@@ -1,4 +1,6 @@
-﻿namespace Xamarin.Forms.Platform.Tizen
+﻿using System;
+
+namespace Xamarin.Forms.Platform.Tizen
 {
 	public class CarouselViewRenderer : ItemsViewRenderer<CarouselView, Native.CarouselView>
 	{
@@ -7,7 +9,6 @@
 			RegisterPropertyHandler(CarouselView.ItemsLayoutProperty, UpdateItemsLayout);
 			RegisterPropertyHandler(CarouselView.IsBounceEnabledProperty, UpdateIsBounceEnabled);
 			RegisterPropertyHandler(CarouselView.IsSwipeEnabledProperty, UpdateIsSwipeEnabled);
-			RegisterPropertyHandler(CarouselView.PositionProperty, UpdatePosition);
 		}
 
 		protected override Native.CarouselView CreateNativeControl(ElmSharp.EvasObject parent)
@@ -20,17 +21,17 @@
 			return Element.ItemsLayout;
 		}
 
+		ElmSharp.SmartEvent _animationStop;
 		protected override void OnElementChanged(ElementChangedEventArgs<CarouselView> e)
 		{
 			base.OnElementChanged(e);
-			Control.Scroll.Scrolled += OnScrollStart;
-			Control.Scroll.PageScrolled += OnScrollStop;
-		}
-
-		protected override void OnItemSelectedFromUI(object sender, SelectedItemChangedEventArgs e)
-		{
-			Element.Position = e.SelectedItemIndex;
-			Element.CurrentItem = e.SelectedItem;
+			if (e.NewElement != null)
+			{
+				Element.PlatformInitialized();
+				Control.Scroll.DragStart += OnScrollStart;
+				_animationStop = new ElmSharp.SmartEvent(Control.Scroll, Control.Scroll.RealHandle, "scroll,anim,stop");
+				_animationStop.On += OnScrollStop;
+			}
 		}
 
 		protected override void Dispose(bool disposing)
@@ -39,8 +40,8 @@
 			{
 				if (Element != null)
 				{
-					Control.Scroll.Scrolled -= OnScrollStart;
-					Control.Scroll.PageScrolled -= OnScrollStop;
+					Control.Scroll.DragStart -= OnScrollStart;
+					_animationStop.On -= OnScrollStop;
 				}
 			}
 			base.Dispose(disposing);
@@ -49,30 +50,17 @@
 		void OnScrollStart(object sender, System.EventArgs e)
 		{
 			if (!Element.IsDragging)
-			{
 				Element.SetIsDragging(true);
-			}
+			if (!Element.IsScrolling)
+				Element.IsScrolling = true;
 		}
 
 		void OnScrollStop(object sender, System.EventArgs e)
 		{
 			if (Element.IsDragging)
-			{
 				Element.SetIsDragging(false);
-			}
-		}
-
-		void UpdatePosition(bool initialize)
-		{
-			if (initialize)
-			{
-				return;
-			}
-			if (Element.Position > -1 && Element.Position < Control.Adaptor.Count)
-			{
-				Control.Adaptor.RequestItemSelected(Element.Position);
-				Element.CurrentItem = Control.Adaptor[Element.Position];
-			}
+			if (Element.IsScrolling)
+				Element.IsScrolling = false;
 		}
 
 		void UpdateIsBounceEnabled()

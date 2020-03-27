@@ -21,5 +21,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		{
 			return AllocatedSize;
 		}
+
+		ESize ICollectionViewController.GetItemSize(int index, int widthConstraint, int heightConstraint)
+		{
+			return AllocatedSize;
+		}
 	}
 }
