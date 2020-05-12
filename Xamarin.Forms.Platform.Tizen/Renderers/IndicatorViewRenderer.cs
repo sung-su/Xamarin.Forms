@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using ElmSharp;
-using EColor = ElmSharp.Color;
 
 namespace Xamarin.Forms.Platform.Tizen
 {
 	public class IndicatorViewRenderer : LayoutRenderer
 	{
+		const string _defaultIndicator = "Xamarin.Forms.Platform.Tizen.Resource.b_home_indicator_horizontal_dot.png";
+		const string _focusedIndicator = "Xamarin.Forms.Platform.Tizen.Resource.b_home_indicator_horizontal_focus_dot.png";
 		int _itemSize = -1;
-		int _itemCount = -1;
-		EColor _selectedColor;
-		EColor _filledColor;
 
 		IndicatorView IndicatorView => Element as IndicatorView;
 
@@ -18,8 +17,6 @@ namespace Xamarin.Forms.Platform.Tizen
 		{
 			Debug.WriteLine($"@@@ @@@ (R) IndicatorViewRenderer");
 			_itemSize = Device.Idiom == TargetIdiom.Watch ? 18 : 40;
-			_selectedColor = EColor.Red;
-			_filledColor = EColor.Green;
 
 			RegisterPropertyHandler(IndicatorView.ItemsSourceProperty, UpdateItemsSource);
 			//RegisterPropertyHandler(IndicatorView.CountProperty, UpdateItemsSource);
@@ -34,15 +31,12 @@ namespace Xamarin.Forms.Platform.Tizen
 			base.OnElementChanged(e);
 
 			//TODO: need to align to center
-			Control.BackgroundColor = new EColor(100, 100, 100, 100);
+			Control.BackgroundColor = new ElmSharp.Color(100, 100, 100, 100);
 			Control.AlignmentX = -1;
 			Control.AlignmentY = -1;
 			Control.WeightX = 1;
 			Control.WeightY = 1;
-
-			//TODO: why added one more control.child ??
 			Control.LayoutUpdated += OnLayoutUpdated;
-			//Control.SetLayoutCallback(OnLayoutUpdated);
 
 			UpdateItemsSource(false);
 			UpdatePosition(false);
@@ -60,22 +54,34 @@ namespace Xamarin.Forms.Platform.Tizen
 			base.Dispose(disposing);
 		}
 
-		void OnLayoutUpdated()
-		{
-			Debug.WriteLine($"@@@ @@@ (R) OnLayoutUpdated [{Control.Children.Count}][{_itemCount}]");
-			UpdateGeometry();
-		}
-
 		void OnLayoutUpdated(object sender, Native.LayoutEventArgs e)
 		{
-			Debug.WriteLine($"@@@ @@@ (R) OnLayoutUpdated [{Control.Children.Count}][{_itemCount}]");
 			UpdateGeometry();
 		}
 
 		void UpdateGeometry()
 		{
-			Debug.WriteLine($"@@@ @@@ (R) UpdateGeometry [{Control.Children.Count}][{_itemCount}]");
-			SetLinearLayout(NativeView.Geometry);
+			int padding = 0;
+			int itemSize = IndicatorView.IndicatorSize < 1 ? _itemSize : (int)IndicatorView.IndicatorSize;
+			for (int index = 0; index < IndicatorView.Count; index++)
+			{
+				var item = Control.Children[index];
+				//item.MinimumWidth = itemSize;
+				//item.MinimumHeight = itemSize;
+				//item.Move(NativeView.Geometry.X + padding, NativeView.Geometry.Y);
+				item.Geometry = new Rect()
+				{
+					Width = itemSize,
+					Height = itemSize,
+					X = NativeView.Geometry.X + padding,
+					Y = NativeView.Geometry.Y,
+				};
+				Debug.WriteLine($"@@@ @@@ (R) UpdateGeometry 1 [{padding}]");
+				Debug.WriteLine($"@@@ @@@ (R) UpdateGeometry 2 [{item.MinimumWidth}] [{item.MinimumHeight}]");
+				Debug.WriteLine($"@@@ @@@ (R) UpdateGeometry 3 [{item.Geometry}]");
+				//item.Show();
+				padding += itemSize;
+			}
 		}
 
 		void UpdateItemsSource(bool isInitializing)
@@ -83,42 +89,81 @@ namespace Xamarin.Forms.Platform.Tizen
 			if (isInitializing)
 				return;
 
-			Control.Children.Clear();
+			foreach (var child in Control.Children)
+			{
+				Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource Control children need to GCGCGGCGCGCGCG");
+				child.Hide();
+			}
+			if (Control.Children.Count > 0)
+			{
+				Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource Control children CLEAR CLEAR CLEAR");
+				Control.Children.Clear();
+			}
 
 			if (IndicatorView.ItemsSource == null)
 				return;
 
-			_itemCount = 0;
+			int itemSize = IndicatorView.IndicatorSize < 1 ? _itemSize : (int)IndicatorView.IndicatorSize;
 			foreach (var item in IndicatorView.ItemsSource)
 			{
-				var box = new ElmSharp.Box(NativeView);
+				var box = new Box(NativeView);
+				box.Geometry = new Rect(180, 180, itemSize, itemSize);
 
-				EvasObject rect = new ElmSharp.Rectangle(NativeView);
+				EvasObject native = null;
 				if (IndicatorView.IndicatorTemplate != null)
 				{
-					View view = null;
-					if (IndicatorView.IndicatorTemplate is DataTemplateSelector selector)
-						view = selector.SelectTemplate(item, IndicatorView).CreateContent() as View;
-					else
-						view = IndicatorView.IndicatorTemplate.CreateContent() as View;
+					native = GetNativeView(item);
+					//View view = null;
+					//if (IndicatorView.IndicatorTemplate is DataTemplateSelector selector)
+					//	view = selector.SelectTemplate(item, IndicatorView).CreateContent() as View;
+					//else
+					//	view = IndicatorView.IndicatorTemplate.CreateContent() as View;
 
-					var renderer = Platform.GetOrCreateRenderer(view);
-					view.Parent = IndicatorView;
-					(renderer as LayoutRenderer)?.RegisterOnLayoutUpdated();
-
-					if (renderer != null)
-						rect = renderer.NativeView;
+					//view.Parent = IndicatorView;
+					//var renderer = Platform.GetOrCreateRenderer(view);
+					//(renderer as LayoutRenderer)?.RegisterOnLayoutUpdated();
+					//native = renderer.NativeView;
+					Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource case1");
 				}
-				rect.MinimumWidth = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize;
-				rect.MinimumHeight = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize;
+				if (native == null)
+				{
+					Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource case2");
+					native = CreateNativeView();
+					//native = new ElmSharp.Rectangle(NativeView);
+				}
+				native.MinimumWidth = itemSize;
+				native.MinimumHeight = itemSize;
+				native.Show();
+				box.PackStart(native);
 
-				box.PackStart(rect);
-				box.Show();
+				Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource box.geo=[{box.Geometry}]");
 
 				Control.Children.Add(box);
-				_itemCount++;
 			}
-			Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource [{Control.Children.Count}][{_itemCount}]");
+			Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource ChildCount=[{Control.Children.Count}]");
+			Debug.WriteLine($"@@@ @@@ (R) UpdateItemsSource ItemsSourceCount=[{IndicatorView.Count}]");
+		}
+
+		EvasObject GetNativeView(object item)
+		{
+			View view = null;
+			if (IndicatorView.IndicatorTemplate is DataTemplateSelector selector)
+				view = selector.SelectTemplate(item, IndicatorView).CreateContent() as View;
+			else
+				view = IndicatorView.IndicatorTemplate.CreateContent() as View;
+
+			//view.Parent = IndicatorView;
+			var renderer = Platform.GetOrCreateRenderer(view);
+			(renderer as LayoutRenderer)?.RegisterOnLayoutUpdated();
+			return renderer.NativeView;
+		}
+
+		EvasObject CreateNativeView()
+		{
+			var img = new ElmSharp.Image(NativeView);
+			img.Load(ResourcePath.GetPath(_defaultIndicator));
+			return img;
+			//return new ElmSharp.Rectangle(NativeView);
 		}
 
 		void UpdatePosition(bool isInitializing)
@@ -126,71 +171,34 @@ namespace Xamarin.Forms.Platform.Tizen
 			if (isInitializing)
 				return;
 
-			Debug.WriteLine($"@@@ @@@ (R) UpdatePosition [{Control.Children.Count}][{_itemCount}]");
-
-			int index = 0;
-			foreach (var child in Control.Children)
+			for (int index = 0; index < IndicatorView.Count; index++)
 			{
-				var item = child as ElmSharp.Box;
+				var item = Control.Children[index] as Box;
 				if (item != null)
 				{
 					if (index == IndicatorView.Position)
-						item.BackgroundColor = IndicatorView.SelectedIndicatorColor == Color.Default ? _selectedColor : IndicatorView.SelectedIndicatorColor.ToNative();
+					{
+						Debug.WriteLine($"@@@ @@@ (R) UpdatePosition [{index}] colored");
+						item.BackgroundColor = IndicatorView.SelectedIndicatorColor.ToNative();
+						if (IndicatorView.IndicatorTemplate == null)
+						{
+							Debug.WriteLine($"@@@ @@@ (R) UpdatePosition [{index}] changed");
+							var img = new ElmSharp.Image(NativeView);
+							img.Load(ResourcePath.GetPath(_focusedIndicator));
+							Control.Children[index] = img;
+						}
+					}
 					else
-						item.BackgroundColor = IndicatorView.IndicatorColor == Color.Default ? _filledColor : IndicatorView.IndicatorColor.ToNative();
+					{
+						item.BackgroundColor = IndicatorView.IndicatorColor.ToNative();
+						if (IndicatorView.IndicatorTemplate == null)
+						{
+							var img = new ElmSharp.Image(NativeView);
+							img.Load(ResourcePath.GetPath(_defaultIndicator));
+							Control.Children[index] = img;
+						}
+					}
 				}
-				index++;
-			}
-		}
-
-		void SetLinearLayout(Rect geometry)
-		{
-			int padding = 0;
-			foreach (var item in Control.Children)
-			{
-				var rect = new Rect();
-				rect.Width = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize;
-				rect.Height = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize;
-				rect.X = geometry.X + padding;
-				rect.Y = geometry.Y;
-
-				item.Geometry = rect;
-				item.Show();
-
-				padding += rect.Width;
-			}
-		}
-
-		List<(int, int)> _even = new List<(int, int)>
-		{
-			(37, 63), (49, 49), (63, 37), (77, 27), (93, 18), (109, 10), (127, 5), (144, 1), (162, -1),
-			(180, -1), (198, 1), (216, 5), (233, 10), (249, 18), (265, 27), (279, 37), (293, 49), (305, 63),
-		};
-		List<(int, int)> _odd = new List<(int, int)>
-		{
-			(32, 70), (43, 56), (56, 43), (70, 32), (85, 22), (101, 14), (118, 7), (135, 3), (153, 0),
-			(171, -1), (189, 0), (207, 3), (224, 7), (241, 14), (257, 22), (272, 32), (286, 43), (277, 56), (310, 70),
-		};
-
-		void SetCurveLayout(Rect geometry)
-		{
-			var count = Control.Children.Count;
-			int center = 9;
-			int i = 0;
-			foreach (var item in Control.Children)
-			{
-				int start = center - (count / 2);
-				int offset = i++;
-				int position = start + offset;
-				(int X, int Y) coordinate = count % 2 == 0 ? _even[position] : _odd[position];
-				item.Geometry = new Rect
-				{
-					Width = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize,
-					Height = IndicatorView.IndicatorSize < _itemSize ? _itemSize : (int)IndicatorView.IndicatorSize,
-					X = geometry.X + coordinate.X,
-					Y = geometry.Y + coordinate.Y,
-				};
-				item.Show();
 			}
 		}
 	}
