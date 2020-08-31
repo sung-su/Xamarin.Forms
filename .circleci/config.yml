@@ -1,0 +1,123 @@
+version: 2
+
+jobs:
+
+  build-test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/core/sdk:3.0
+    steps:
+      - checkout
+      - run: curl -sL https://art.sec.samsung.net/artifactory/tools/CircleCI/scripts/set_proxy_setting.sh | sh
+      - run: ./build-tizen.sh build
+
+  build-nightly:
+    docker:
+      - image: mcr.microsoft.com/dotnet/core/sdk:3.0
+    steps:
+      - checkout
+      - run: curl -sL https://art.sec.samsung.net/artifactory/tools/CircleCI/scripts/set_proxy_setting.sh | sh
+      - run:
+          command: |
+            VERSION=$(./build-tizen.sh version nightly)
+            ./build-tizen.sh build
+            ./build-tizen.sh pack ${VERSION}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - Xamarin.Forms.*.nupkg
+
+  build-release:
+    docker:
+      - image: mcr.microsoft.com/dotnet/core/sdk:3.0
+    steps:
+      - checkout
+      - run: curl -sL https://art.sec.samsung.net/artifactory/tools/CircleCI/scripts/set_proxy_setting.sh | sh
+      - run:
+          command: |
+            VERSION=$(echo ${CIRCLE_TAG} | sed -e "s/^v//")
+            ./build-tizen.sh build
+            ./build-tizen.sh pack ${VERSION}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - Xamarin.Forms.*.nupkg
+
+  deploy:
+    docker:
+      - image: mcr.microsoft.com/dotnet/core/sdk:3.0
+    environment:
+      ART_URL: https://art.sec.samsung.net/artifactory
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: curl -sL https://art.sec.samsung.net/artifactory/tools/CircleCI/scripts/set_proxy_setting.sh | sh
+      - run: curl -fL https://getcli.jfrog.io | sh
+      - run:
+          command: |
+            ./jfrog rt config --url ${ART_URL} --user ${ART_USER} --password ${ART_PASSWORD} --interactive=false
+            ./jfrog rt u Xamarin.Forms.*.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
+            ./jfrog rt bag ${CIRCLE_REPOSITORY_URL} ${CIRCLE_SHA1} `realpath ${CIRCLE_WORKING_DIRECTORY}`
+            ./jfrog rt bp ${CIRCLE_REPOSITORY_URL} ${CIRCLE_SHA1}
+
+  github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    environment:
+      GITHUB_API: https://github.sec.samsung.net/api/v3/
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          command: |
+            ghr -t ${GITHUB_TOKEN} -u dotnet -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${CIRCLE_TAG} *.nupkg
+
+
+workflows:
+  version: 2
+
+  commit:
+    jobs:
+      - build-test
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 15 * * *"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - build-nightly
+      - deploy:
+          requires:
+            - build-nightly
+
+  release:
+    jobs:
+      - build-release:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+            branches:
+              ignore: /.*/
+      - deploy:
+          requires:
+            - build-release
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+            branches:
+              ignore: /.*/
+      - github-release:
+          requires:
+            - deploy
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+            branches:
+              ignore: /.*/
+
+
+
