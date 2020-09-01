@@ -33,6 +33,14 @@ cmd_build() {
   dotnet build -c $BUILD_CONF Xamarin.Forms.Tizen.sln
 }
 
+cmd_build_coverage() {
+  git checkout -t origin/coverage
+  dotnet new sln -n Xamarin.Forms.Tizen
+  dotnet sln Xamarin.Forms.Tizen.sln add Xamarin.Forms.Platform/Xamarin.Forms.Platform.csproj Xamarin.Forms.Core/Xamarin.Forms.Core.csproj Xamarin.Forms.Maps/Xamarin.Forms.Maps.csproj Xamarin.Forms.Platform.Tizen/Xamarin.Forms.Platform.Tizen.csproj Xamarin.Forms.Xaml/Xamarin.Forms.Xaml.csproj Xamarin.Forms.Build.Tasks/Xamarin.Forms.Build.Tasks.Tizen.csproj Xamarin.Forms.Maps.Tizen/Xamarin.Forms.Maps.Tizen.csproj Stubs/Xamarin.Forms.Platform.Tizen/Xamarin.Forms.Platform.Tizen\ \(Forwarders\).csproj
+  dotnet build -c $BUILD_CONF Weavers.sln
+  dotnet build -c $BUILD_CONF Xamarin.Forms.Tizen.sln
+}
+
 cmd_pack() {
   VERSION=$1; shift
   if [ -z "$VERSION" ]; then
@@ -48,6 +56,7 @@ cmd=$1; [ $# -gt 0 ] && shift;
 case "$cmd" in
   clean) cmd_clean $@ && exit 0 ;;
   build | "") cmd_build $@ && exit 0 ;;
+  build-coverage | "") cmd_build_coverage $@ && exit 0 ;;
   pack) cmd_pack $@ && exit 0 ;;
   version) get_version $@ && exit 0 ;;
   *) echo "Invalid command" && exit 1 ;;

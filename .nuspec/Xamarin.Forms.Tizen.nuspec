@@ -28,12 +28,14 @@
         <reference file="Xamarin.Forms.Core.dll" />
         <reference file="Xamarin.Forms.Platform.dll" />
         <reference file="Xamarin.Forms.Xaml.dll" />
+        <reference file="Xamarin.Forms.Maps.dll" />
       </group>
       <group targetFramework="tizen40">
         <reference file="Xamarin.Forms.Core.dll" />
         <reference file="Xamarin.Forms.Platform.Tizen.dll" />
         <reference file="Xamarin.Forms.Platform.dll" />
         <reference file="Xamarin.Forms.Xaml.dll" />
+        <reference file="Xamarin.Forms.Maps.Tizen.dll" />
       </group>
     </references>
   </metadata>
@@ -56,6 +58,8 @@
     <file src="..\Xamarin.Forms.Platform\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Platform.dll" target="lib\netstandard2.0" />
     <file src="..\Xamarin.Forms.Platform\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Platform.*pdb" target="lib\netstandard2.0" />
     <file src="..\Xamarin.Forms.Platform\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Platform.*mdb" target="lib\netstandard2.0" />
+    <file src="..\Xamarin.Forms.Maps\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Maps.dll" target="lib\netstandard2.0" />
+    <file src="..\docs\Xamarin.Forms.Maps.xml" target="lib\netstandard2.0" />
 
     <!--Xamlc stuff-->
     <file src="Xamarin.Forms.targets" target="build" />
@@ -119,6 +123,9 @@
     <file src="..\Xamarin.Forms.Xaml\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Xaml.dll" target="lib\tizen40" />
     <file src="..\Xamarin.Forms.Xaml\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Xaml.*pdb" target="lib\tizen40" />
     <file src="..\docs\Xamarin.Forms.Xaml.xml" target="lib\tizen40" />
+    <file src="..\Xamarin.Forms.Maps.Tizen\bin\$Configuration$\tizen40\Xamarin.Forms.Maps.Tizen.dll" target="lib\tizen40" />
+    <file src="..\Xamarin.Forms.Maps\bin\$Configuration$\netstandard2.0\Xamarin.Forms.Maps.dll" target="lib\tizen40" />
+    <file src="..\docs\Xamarin.Forms.Maps.xml" target="lib\tizen40" />
 
   </files>
 
