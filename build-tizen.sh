@@ -20,7 +20,7 @@ get_version() {
 cmd_clean() {
   dotnet clean Xamarin.Forms.Tizen.sln
   if [ "$1" == "all" ]; then
-    rm -fr $NUSPEC_DIR/netstandard2.0
+    rm -fr $NUSPEC_DIR/netstandard2.0 $NUSPEC_DIR/net46
     rm -f $SCRIPT_DIR/Xamarin.Forms.*.nupkg
   fi
   rm -fr $NUSPEC_DIR/bin $NUSPEC_DIR/obj
@@ -50,6 +50,8 @@ cmd_pack() {
   fi
     dotnet msbuild -nologo /t:Restore $NUSPEC_DIR/pack.csproj
     dotnet msbuild -nologo /t:Pack $NUSPEC_DIR/pack.csproj /p:Version=$VERSION /p:Configuration=$BUILD_CONF $@
+    dotnet msbuild -nologo /t:Restore $NUSPEC_DIR/pack_maps.csproj
+    dotnet msbuild -nologo /t:Pack $NUSPEC_DIR/pack_maps.csproj /p:Version=$VERSION /p:Configuration=$BUILD_CONF $@
 }
 
 cmd=$1; [ $# -gt 0 ] && shift;
