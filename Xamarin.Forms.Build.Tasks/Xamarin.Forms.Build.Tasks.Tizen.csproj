@@ -9,7 +9,7 @@
 	    <_DisableStrongNamer Condition=" '$(_DisableStrongNamer)' != 'True' ">False</_DisableStrongNamer>
 	    <AssemblyName>Xamarin.Forms.Build.Tasks</AssemblyName>
       <Description>Xamarin Forms Build Task</Description>
-	    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+	    <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
 	    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	    <SignAssembly Condition=" '$(_DisableStrongNamer)' != 'True' ">True</SignAssembly>
 	    <DisableStrongNamer Condition=" '$(_DisableStrongNamer)' == 'True' ">True</DisableStrongNamer>
@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.8.166" />
     <PackageReference Include="StrongNamer" Version="0.0.8" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
      <!--PackageReference Include="XliffTasks" Version="1.0.0-beta.20206.1" PrivateAssets="all" /-->
   </ItemGroup>
 
