@@ -62,8 +62,8 @@ jobs:
             ./jfrog rt config --url ${ART_URL} --user ${ART_USER} --password ${ART_PASSWORD} --interactive=false
             ./jfrog rt u Xamarin.Forms.`./build-tizen.sh version nightly`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
             ./jfrog rt u Xamarin.Forms.`./build-tizen.sh version coverage`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
-            ./jfrog rt u Xamarin.Forms.Maps`./build-tizen.sh version nightly`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
-            ./jfrog rt u Xamarin.Forms.Maps`./build-tizen.sh version coverage`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
+            ./jfrog rt u Xamarin.Forms.Maps.`./build-tizen.sh version nightly`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
+            ./jfrog rt u Xamarin.Forms.Maps.`./build-tizen.sh version coverage`.nupkg dotnet_nuget --build-name=${CIRCLE_REPOSITORY_URL} --build-number=${CIRCLE_SHA1}
             ./jfrog rt bag ${CIRCLE_REPOSITORY_URL} ${CIRCLE_SHA1} `realpath ${CIRCLE_WORKING_DIRECTORY}`
             ./jfrog rt bp ${CIRCLE_REPOSITORY_URL} ${CIRCLE_SHA1}
 
