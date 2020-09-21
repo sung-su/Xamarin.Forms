@@ -94,7 +94,7 @@ workflows:
           filters:
             branches:
               only:
-                - main
+                - 5.0.0
     jobs:
       - build-nightly
       - deploy:
