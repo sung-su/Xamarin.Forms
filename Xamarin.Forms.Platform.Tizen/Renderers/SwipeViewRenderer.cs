@@ -415,17 +415,16 @@ namespace Xamarin.Forms.Platform.Tizen
 		{
 			foreach (var item in items)
 			{
-				var cmd = item.Command;
-				object parameter = item.CommandParameter;
-
-				if (cmd != null && cmd.CanExecute(parameter))
-					cmd.Execute(parameter);
+				bool isEnabled = true;
 
 				if (item is SwipeItem swipeItem)
-					swipeItem.OnInvoked();
+					isEnabled = swipeItem.IsEnabled;
 
-				if (item is SwipeItemView customSwipeItem)
-					customSwipeItem.OnInvoked();
+				if (item is SwipeItemView swipeItemView)
+					isEnabled = swipeItemView.IsEnabled;
+
+				if (isEnabled)
+					item.OnInvoked();
 			}
 		}
 
