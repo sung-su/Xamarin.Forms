@@ -19,10 +19,13 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		ViewHolderState _state;
 		bool _isSelected;
 
-		public ViewHolder(EvasObject parent) : base(parent)
+		public ViewHolder(EvasObject parent, bool hasFocuse = true) : base(parent)
 		{
+			HasFocus = hasFocuse;
 			Initialize(parent);
 		}
+
+		public bool HasFocus { get; }
 
 		public object ViewCategory { get; set; }
 
@@ -48,7 +51,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				if (_content != null)
 				{
 					PackEnd(_content);
-					_content.StackBelow(_focusArea);
+					if (HasFocus)
+					{
+						_content.StackBelow(_focusArea);
+					}
 				}
 			}
 		}
@@ -75,25 +81,33 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		protected void Initialize(EvasObject parent)
 		{
 			SetLayoutCallback(OnLayout);
-
-			_focusArea = new Button(parent);
-			_focusArea.Color = EColor.Transparent;
-			_focusArea.BackgroundColor = EColor.Transparent;
-			_focusArea.SetEffectColor(EColor.Transparent);
-			_focusArea.Clicked += OnClicked;
-			_focusArea.Focused += OnFocused;
-			_focusArea.Unfocused += OnFocused;
-			_focusArea.KeyUp += OnKeyUp;
-			_focusArea.RepeatEvents = true;
-			_focusArea.Show();
-
-			PackEnd(_focusArea);
+			if (HasFocus)
+			{
+				_focusArea = new Button(parent);
+				_focusArea.Color = EColor.Transparent;
+				_focusArea.BackgroundColor = EColor.Transparent;
+				_focusArea.SetEffectColor(EColor.Transparent);
+				_focusArea.Clicked += OnClicked;
+				_focusArea.Focused += OnFocused;
+				_focusArea.Unfocused += OnFocused;
+				_focusArea.KeyUp += OnKeyUp;
+				_focusArea.RepeatEvents = true;
+				_focusArea.Show();
+				PackEnd(_focusArea);
+			}
+			else
+			{
+				Focused += OnFocused;
+				Unfocused += OnFocused;
+				KeyUp += OnKeyUp;
+				RepeatEvents = true;
+			}
 			Show();
 		}
 
 		protected virtual void OnFocused(object sender, EventArgs e)
 		{
-			if (_focusArea.IsFocused)
+			if (HasFocus ? _focusArea.IsFocused : IsFocused)
 			{
 				State = ViewHolderState.Focused;
 			}
@@ -110,7 +124,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		protected virtual void OnLayout()
 		{
-			_focusArea.Geometry = Geometry;
+			if (HasFocus)
+			{
+				_focusArea.Geometry = Geometry;
+			}
 			if (_content != null)
 			{
 				_content.Geometry = Geometry;
@@ -131,7 +148,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnKeyUp(object sender, EvasKeyEventArgs e)
 		{
-			if (e.KeyName == "Enter" && _focusArea.IsFocused)
+			if (e.KeyName == "Enter" && HasFocus ? _focusArea.IsFocused : IsFocused)
 			{
 				RequestSelected?.Invoke(this, EventArgs.Empty);
 			}
