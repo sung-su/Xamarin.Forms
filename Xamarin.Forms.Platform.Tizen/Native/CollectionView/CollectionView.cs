@@ -35,8 +35,9 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public event EventHandler<ItemsViewScrolledEventArgs> Scrolled;
 
-		public CollectionView(EvasObject parent) : base(parent)
+		public CollectionView(EvasObject parent, bool hasFocus = true) : base(parent)
 		{
+			HasFocus = hasFocus;
 			AllowFocus(true);
 			SetLayoutCallback(OnLayout);
 			Scroller = CreateScroller(parent);
@@ -269,9 +270,11 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return Adaptor.MeasureItem(index, widthConstraint, heightConstraint);
 		}
 
+		public bool HasFocus { get; }
+
 		protected virtual ViewHolder CreateViewHolder()
 		{
-			return new ViewHolder(this);
+			return new ViewHolder(this, HasFocus);
 		}
 
 		ViewHolder ICollectionViewController.RealizeView(int index)
@@ -329,21 +332,29 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			if (SelectionMode == CollectionViewSelectionMode.None)
 				return;
 
+			var newViewHolder = sender as ViewHolder;
 			if (_lastSelectedViewHolder != null)
 			{
 				_lastSelectedViewHolder.ResetState();
 			}
 
-			_lastSelectedViewHolder = sender as ViewHolder;
-			if (_lastSelectedViewHolder != null)
+			if (newViewHolder != null)
 			{
-				_lastSelectedViewHolder.State = ViewHolderState.Selected;
-				if (_viewHolderIndexTable.TryGetValue(_lastSelectedViewHolder, out int index))
+				if (!HasFocus)
+				{
+					newViewHolder.State = ViewHolderState.Focused;
+					if (_lastSelectedViewHolder != newViewHolder)
+						return;
+				}
+
+				newViewHolder.State = ViewHolderState.Selected;
+				if (_viewHolderIndexTable.TryGetValue(newViewHolder, out int index))
 				{
 					_selectedItemIndex = index;
 					Adaptor?.SendItemSelected(index);
 				}
 			}
+			_lastSelectedViewHolder = newViewHolder;
 		}
 
 		void ICollectionViewController.UnrealizeView(ViewHolder view)
