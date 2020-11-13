@@ -19,9 +19,10 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		ViewHolderState _state;
 		bool _isSelected;
 
-		public ViewHolder(EvasObject parent, bool hasFocuse = true) : base(parent)
+		public ViewHolder(EvasObject parent, bool hasFocus) : base(parent)
 		{
-			HasFocus = hasFocuse;
+			HasFocus = hasFocus;
+			Console.WriteLine($"@@@ new ViewHolder");
 			Initialize(parent);
 		}
 
@@ -83,6 +84,14 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			SetLayoutCallback(OnLayout);
 			if (HasFocus)
 			{
+				Console.WriteLine($"@@@ VH.HasFocus [{HasFocus}]");
+				Focused += OnFocused;
+				Unfocused += OnFocused;
+				KeyUp += OnKeyUp;
+				RepeatEvents = true;
+			}
+			else
+			{
 				_focusArea = new Button(parent);
 				_focusArea.Color = EColor.Transparent;
 				_focusArea.BackgroundColor = EColor.Transparent;
@@ -95,24 +104,19 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				_focusArea.Show();
 				PackEnd(_focusArea);
 			}
-			else
-			{
-				Focused += OnFocused;
-				Unfocused += OnFocused;
-				KeyUp += OnKeyUp;
-				RepeatEvents = true;
-			}
 			Show();
 		}
 
 		protected virtual void OnFocused(object sender, EventArgs e)
 		{
-			if (HasFocus ? _focusArea.IsFocused : IsFocused)
+			if (HasFocus ? IsFocused : _focusArea.IsFocused)
 			{
+				Console.WriteLine($"@@@ VH.Focused [{_focusArea?.IsFocused}]F[{HasFocus}]T[{IsFocused}]");
 				State = ViewHolderState.Focused;
 			}
 			else
 			{
+				Console.WriteLine($"@@@ VH.Unfocused [{_focusArea?.IsFocused}]F[{HasFocus}]T[{IsFocused}]");
 				State = _isSelected ? ViewHolderState.Selected : ViewHolderState.Normal;
 			}
 		}
@@ -136,6 +140,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		protected virtual void UpdateState()
 		{
+			Console.WriteLine($"@@@ VH.UpdateState=[{State}], [{_focusArea?.IsFocused}]F[{HasFocus}]T[{IsFocused}]");
 			if (State == ViewHolderState.Selected)
 				_isSelected = true;
 			else if (State == ViewHolderState.Normal)
@@ -148,7 +153,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnKeyUp(object sender, EvasKeyEventArgs e)
 		{
-			if (e.KeyName == "Enter" && HasFocus ? _focusArea.IsFocused : IsFocused)
+			Console.WriteLine($"@@@ VH.OnKey=[{e.KeyName}], [{_focusArea?.IsFocused}]F[{HasFocus}]T[{IsFocused}]");
+			if (e.KeyName == "Enter" && HasFocus ? IsFocused : _focusArea.IsFocused)
 			{
 				RequestSelected?.Invoke(this, EventArgs.Empty);
 			}

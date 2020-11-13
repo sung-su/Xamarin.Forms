@@ -35,9 +35,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		public event EventHandler<ItemsViewScrolledEventArgs> Scrolled;
 
-		public CollectionView(EvasObject parent, bool hasFocus = true) : base(parent)
+		public CollectionView(EvasObject parent) : base(parent)
 		{
-			HasFocus = hasFocus;
 			AllowFocus(true);
 			SetLayoutCallback(OnLayout);
 			Scroller = CreateScroller(parent);
@@ -270,10 +269,12 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			return Adaptor.MeasureItem(index, widthConstraint, heightConstraint);
 		}
 
-		public bool HasFocus { get; }
+		bool _hasFocus = false;
+		public bool HasFocus => _hasFocus;
 
 		protected virtual ViewHolder CreateViewHolder()
 		{
+			//_hasFocus = true;
 			return new ViewHolder(this, HasFocus);
 		}
 
@@ -310,6 +311,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		void OnItemStateChanged(object sender, EventArgs e)
 		{
 			ViewHolder holder = (ViewHolder)sender;
+			Console.WriteLine($"@@@@ CV.OnItemStateChanged VH.State=[{holder.State}]");
 			if (holder.Content != null)
 			{
 				Adaptor?.UpdateViewState(holder.Content, holder.State);
@@ -317,6 +319,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 			if (holder.State == ViewHolderState.Focused && FocusedItemScrollPosition != ScrollToPosition.MakeVisible)
 			{
+				Console.WriteLine($"@@@@ CV.OnItemStateChanged VH.State=[{holder.State}] update");
 				Device.BeginInvokeOnMainThread(() =>
 				{
 					if (holder.State == ViewHolderState.Focused && _viewHolderIndexTable.TryGetValue(holder, out int itemIndex))
@@ -329,6 +332,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 
 		void OnRequestItemSelection(object sender, EventArgs e)
 		{
+			Console.WriteLine($"@@@@ CV.OnRequestItemSelection 1 SelectionMode=[{SelectionMode}]");
 			if (SelectionMode == CollectionViewSelectionMode.None)
 				return;
 
@@ -336,22 +340,32 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 			if (_lastSelectedViewHolder != null)
 			{
 				_lastSelectedViewHolder.ResetState();
+				Console.WriteLine($"@@@@ CV.OnRequestItemSelection 2 old VH.State Reset to [Normal]");
 			}
 
 			if (newViewHolder != null)
 			{
-				if (!HasFocus)
+				Console.WriteLine($"@@@@ CV.OnRequestItemSelection 3-1 new VH.State [{newViewHolder.State}]");
+
+				if (HasFocus)
 				{
 					newViewHolder.State = ViewHolderState.Focused;
-					if (_lastSelectedViewHolder != newViewHolder)
-						return;
+					Console.WriteLine($"@@@@ CV.OnRequestItemSelection 3-2 new VH.State = focus [{newViewHolder.State}]");
+				}
+				else
+				{
+					_lastSelectedViewHolder = newViewHolder;
 				}
 
-				newViewHolder.State = ViewHolderState.Selected;
-				if (_viewHolderIndexTable.TryGetValue(newViewHolder, out int index))
+				if (_lastSelectedViewHolder == newViewHolder)
 				{
-					_selectedItemIndex = index;
-					Adaptor?.SendItemSelected(index);
+					newViewHolder.State = ViewHolderState.Selected;
+					Console.WriteLine($"@@@@ CV.OnRequestItemSelection 3-3 new VH.State = select [{newViewHolder.State}]");
+					if (_viewHolderIndexTable.TryGetValue(newViewHolder, out int index))
+					{
+						_selectedItemIndex = index;
+						Adaptor?.SendItemSelected(index);
+					}
 				}
 			}
 			_lastSelectedViewHolder = newViewHolder;
