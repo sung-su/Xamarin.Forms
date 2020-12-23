@@ -11,6 +11,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		Interop.CanvasBoxLayoutCallback _layoutCallback;
 		Lazy<ERectangle> _rectangle;
 
+		public event EventHandler<LayoutEventArgs> LayoutUpdated;
+
 		public EvasBox(EvasObject parent) : base(parent)
 		{
 			_rectangle = new Lazy<ERectangle>(() =>
@@ -21,6 +23,8 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 				rectangle.Show();
 				return rectangle;
 			});
+
+			SetLayoutCallback(() => { NotifyOnLayout(); });
 		}
 
 		public override EColor BackgroundColor
@@ -79,6 +83,14 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 		protected override IntPtr CreateHandle(EvasObject parent)
 		{
 			return Interop.evas_object_box_add(Interop.evas_object_evas_get(parent.Handle));
+		}
+
+		void NotifyOnLayout()
+		{
+			if (null != LayoutUpdated)
+			{
+				LayoutUpdated(this, new LayoutEventArgs() { Geometry = Geometry });
+			}
 		}
 
 		class Interop

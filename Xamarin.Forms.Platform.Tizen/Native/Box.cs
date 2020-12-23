@@ -24,7 +24,7 @@ namespace Xamarin.Forms.Platform.Tizen.Native
 	/// This class overrides the layout mechanism. Instead of using the native layout,
 	/// <c>LayoutUpdated</c> event is sent.
 	/// </remarks>
-	public class Box : EvasBox
+	public class Box : EBox
 	{
 		public Box(EvasObject parent) : base(parent)
 		{
